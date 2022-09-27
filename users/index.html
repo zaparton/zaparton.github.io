@@ -145,7 +145,7 @@
             </div>
             <div id="pic_boxes_wrapper" tab_id="2">
                 <div class="frm_pics">
-                    <div class="frm_section pic_band" slot_idx="1">
+                    <template id="pic-band"><div>
                         <div class="frm_section_box">
                             <div class="frm_section_row pic_box_wrapper">
                                 <div class="pic_box">
@@ -165,7 +165,7 @@
                                 <div class="frm_section_row_content pic_status_error">תקלה בשמירת התמונה</div>
                                 <div class="frm_section_row_content pic_status_ok">התמונה שמורה</div>
                             </div>
-                            <div class="frm_section_row" pic_contest_status="filter_idle">
+                            <div class="frm_section_row pic_contest_status" pic_contest_status="filter_idle">
                                 <div class="frm_section_row_title">מצב שיפוט:</div>
                                 <div class="frm_section_row_content pic_contest_status_filter_idle">התמונה מחכה לסינון תנאי סף</div>
                                 <div class="frm_section_row_content pic_contest_status_filter_rejected">התמונה נבדקה ולצערנו לא עברה את תנאי הסף</div>
@@ -177,113 +177,15 @@
                                 <div class="frm_section_row_title ">פעולות:</div>
                                 <div class="frm_section_row_content"><input class="bt_pic_delete" type="button" value="מחיקה"></div>
                             </div>
-                        </div>
-                    </div>
-                    <div class="frm_section pic_band" slot_idx="2">
-                        <div class="frm_section_box">
-                            <div class="frm_section_row pic_box_wrapper">
-                                <div class="pic_box">
-                                    <div class="drop_zone">
-                                        <div class="img_thumb_loader"></div>
-                                        <img src="" alt="">
-                                        <p>גרור לכאן, או לחץ לבחירת קובץ</p>
-                                        <input type="file" hidden>
-                                    </div>
-                                </div>
-                                <div class="pic_box_mask"></div>
-                            </div>
-                            <div class="frm_section_row" pic_status="idle">
-                                <div class="frm_section_row_title">מצב קובץ:</div>
-                                <div class="frm_section_row_content upload_progress_wrapper pic_status_uploading"><div class="upload_status">&nbsp;</div><div class="upload_progress" progress=""></div></div>
-                                <div class="frm_section_row_content pic_status_idle">ממתין להעלאה</div>
-                                <div class="frm_section_row_content pic_status_error">תקלה בשמירת התמונה</div>
-                                <div class="frm_section_row_content pic_status_ok">התמונה שמורה</div>
-                            </div>
-                            <div class="frm_section_row" pic_contest_status="none">
-                                <div class="frm_section_row_title">מצב שיפוט:</div>
-                                <div class="frm_section_row_content pic_contest_status_filter_idle">התמונה מחכה לסינון תנאי סף</div>
-                                <div class="frm_section_row_content pic_contest_status_filter_rejected">התמונה נבדקה ולצערנו לא עברה את תנאי הסף</div>
-                                <div class="frm_section_row_content pic_contest_status_quality_idle">התמונה מחכה לסינון איכות ראשוני</div>
-                                <div class="frm_section_row_content pic_contest_status_quality_rejected">התמונה נבדקה ולצערנו לא עברה את תנאי סף האיכות</div>
-                                <div class="frm_section_row_content pic_contest_status_score_idle">התמונה עברה את תנאי הסף ומחכה לשיפוט</div>
-                            </div>
-                            <div class="frm_section_row pic_actions">
-                                <div class="frm_section_row_title">פעולות:</div>
-                                <div class="frm_section_row_content"><input class="bt_pic_delete" type="button" value="מחיקה"></div>
+                            <div class="frm_section_row pic_error">
+                                <div class="frm_section_row_title ">תקלה בביצוע הפעולה :(</div>
                             </div>
                         </div>
-                    </div>
-                    <div class="frm_section pic_band" slot_idx="3">
-                        <div class="frm_section_box">
-                            <div class="frm_section_row pic_box_wrapper">
-                                <div class="pic_box">
-                                    <div class="drop_zone">
-                                        <div class="img_thumb_loader"></div>
-                                        <img src="" alt="">
-                                        <p>גרור לכאן, או לחץ לבחירת קובץ</p>
-                                        <input type="file" hidden>
-                                    </div>
-                                </div>
-                                <div class="pic_box_mask"></div>
-                            </div>
-                            <div class="frm_section_row" pic_status="idle">
-                                <div class="frm_section_row_title">מצב קובץ:</div>
-                                <div class="frm_section_row_content upload_progress_wrapper pic_status_uploading"><div class="upload_status">&nbsp;</div><div class="upload_progress" progress=""></div></div>
-                                <div class="frm_section_row_content pic_status_idle">ממתין להעלאה</div>
-                                <div class="frm_section_row_content pic_status_error">תקלה בשמירת התמונה</div>
-                                <div class="frm_section_row_content pic_status_ok">התמונה שמורה</div>
-                            </div>
-                            <div class="frm_section_row" pic_contest_status="filter_idle">
-                                <div class="frm_section_row_title">מצב שיפוט:</div>
-                                <div class="frm_section_row_content pic_contest_status_filter_idle">התמונה מחכה לסינון תנאי סף</div>
-                                <div class="frm_section_row_content pic_contest_status_filter_rejected">התמונה נבדקה ולצערנו לא עברה את תנאי הסף</div>
-                                <div class="frm_section_row_content pic_contest_status_quality_idle">התמונה מחכה לסינון איכות ראשוני</div>
-                                <div class="frm_section_row_content pic_contest_status_quality_rejected">התמונה נבדקה ולצערנו לא עברה את תנאי סף האיכות</div>
-                                <div class="frm_section_row_content pic_contest_status_score_idle">התמונה עברה את תנאי הסף ומחכה לשיפוט</div>
-                            </div>
-                            <div class="frm_section_row pic_actions">
-                                <div class="frm_section_row_title">פעולות:</div>
-                                <div class="frm_section_row_content"><input class="bt_pic_delete" type="button" value="מחיקה"></div>
-                            </div>
-                        </div>
-                    </div>
+                    </template>
+                    <div class="frm_section pic_band" slot_idx="1"></div>
+                    <div class="frm_section pic_band" slot_idx="2"></div>
+                    <div class="frm_section pic_band" slot_idx="3"></div>
                 </div>
-                <!--div class="pic_band" slot_idx="2">
-                    <div class="pic_box">
-                        <div class="drop_zone">
-                            <div class="img_thumb_loader"></div>
-                            <img src="" alt="">
-                            <p>גרור לכאן, או לחץ לבחירת קובץ</p>
-                            <input type="file" hidden>
-                        </div>                    
-                    </div>
-                    <div class="pic_info">
-                        <table>
-                            <tr><td>מצב העלאה:</td><td><div class="upload_progress" progress=""></div>טרם עלה</td></tr>
-                            <tr><td>תאריך:</td><td><input class="abort_upload" type="button" value="abort"></td></tr>
-                            <tr><td>צלם:</td><td></td></tr>
-                            <tr><td>ציון:</td><td></td></tr>
-                        </table>
-                    </div>
-                </div>
-                <div class="pic_band" slot_idx="3">
-                    <div class="pic_box">
-                        <div class="drop_zone">
-                            <div class="img_thumb_loader"></div>
-                            <img src="" alt="">
-                            <p>גרור לכאן, או לחץ לבחירת קובץ</p>
-                            <input type="file" hidden>
-                        </div>                    
-                    </div>
-                    <div class="pic_info">
-                        <table>
-                            <tr><td>מצב העלאה:</td><td><div class="upload_progress" progress=""></div>טרם עלה</td></tr>
-                            <tr><td>תאריך:</td><td><input class="abort_upload" type="button" value="abort"></td></tr>
-                            <tr><td>צלם:</td><td></td></tr>
-                            <tr><td>ציון:</td><td></td></tr>
-                        </table>
-                    </div>
-                </div-->
             </div>
             <div id="log_wrapper" tab_id="3">
                 <h1>LOG</h1>

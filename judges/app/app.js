@@ -89,8 +89,15 @@ var app = {
         },
         server_load_response: null,
         user:null,
-        pics:[],
-        uploads_in_progress:{}
+        pics:{
+            to_screen:null,
+            to_quality_screen:null,
+            to_score:null
+        },
+        uploads_in_progress:{},
+        idx:{
+            campaign_by_id:{}
+        }
     },
     is_mobile: false,
     please_wait:(visible)=>{
@@ -162,326 +169,210 @@ var app = {
             else app.pop_js_err(error);
         }
     },
-    createThumbnail: (image)=> {
-        var originalFileDataUrl = "";
-        var thumbnailMaxWidth = 600;
-        var thumbnailMaxHeight = 450;
-                var canvas, ctx, thumbnail, thumbnailScale, thumbnailWidth, thumbnailHeight;
-        // create an off-screen canvas
-        canvas = document.createElement('canvas');
-        ctx = canvas.getContext('2d');
-    
-        //Calculate the size of the thumbnail, to best fit within max/width (cropspadding)
-        thumbnailScale = (image.width / image.height) > (thumbnailMaxWidth / thumbnailMaxHeight) ?
-            thumbnailMaxWidth / image.width :
-            thumbnailMaxHeight / image.height;
-        thumbnailWidth = image.width * thumbnailScale;
-        thumbnailHeight = image.height * thumbnailScale;
-    
-        // set its dimension to target size
-        canvas.width = thumbnailWidth;
-        canvas.height = thumbnailHeight;
-    
-        // draw source image into the off-screen canvas:
-        ctx.drawImage(image, 0, 0, thumbnailWidth, thumbnailHeight);
-    
-        //Draw border (optional)
-        ctx.rect(0, 0, thumbnailWidth, thumbnailHeight - 1);
-        ctx.strokeStyle = "#555555";
-        ctx.stroke();
-        return canvas.toDataURL('image/jpeg', 1);
-    
-        // encode image to data-uri with base64 version of compressed image
-        thumbnail = new Image();
-        thumbnail.src = canvas.toDataURL('image/jpeg', 70);
-        return thumbnail;
-    },
-    abort_upload:($band)=>{
-        const slot_idx = $band.attr("slot_idx");
-        // console.log(app.dat.uploads_in_progress[slot_idx]);
-        app.dat.uploads_in_progress[slot_idx].abort();
-    },
-    pic_mngr : {
-        on_error_level_1:(file_inf, error)=>{
-            $(`#pic_boxes_wrapper .pic_band[slot_idx=${file_inf.slot}] .frm_section_row.pic_contest_status`).hide();
-            $(`#pic_boxes_wrapper .pic_band[slot_idx=${file_inf.slot}] .frm_section_row.pic_actions`).hide();
-            $(`#pic_boxes_wrapper .pic_band[slot_idx=${file_inf.slot}] .frm_section_row[pic_status]`).hide();
-            $(`#pic_boxes_wrapper .pic_band[slot_idx=${file_inf.slot}] .pic_error`).show();
-            app.disable_pic_mask(file_inf.slot);
-            console.log(`on_error_level_1: slot:${file_inf.slot}, code:${error.code}, desc:${error.desc}`);
-        },
-        on_error_level_2:(file_inf, text)=>{
-            console.log(`on_error_level_2: slot:${slot}, text:${text}`);
-        },
-        restore_pic_click:(e)=>{
-            const slot = $(e.target).closest('.pic_band').attr("slot_idx");
-            app.build_pic(slot, app.dat.pics[slot-1]);
-        },
-        delete_pic:(file_inf, next)=>{
-            app.update_pic_upload_status(file_inf.slot, 'uploading');
-            app.update_upload_status(file_inf.$band, 'מוחק תמונה...', app.update_status_stages.DELETE, 2, 0);
-            var post_data = {
-                act_id: "delete_pic",
-                uid: app.dat.user.uid,
-                otp: app.dat.user.otp,
-                slot: file_inf.slot
-            };
-            const callback = {
-                on_error_response: (error)=>{ app.pic_mngr.on_error_level_1(file_inf, error); },
-                on_connect_error: (error)=>{ app.pic_mngr.on_error_level_1(file_inf, error); },
-                on_js_error: (error)=>{ app.pic_mngr.on_error_level_1(file_inf, error); },
-                on_success : (response)=>{
-                    app.update_upload_status(file_inf.$band, 'מוחק תמונה...', app.update_status_stages.DELETE, 2, 100);
-                    next();
-                }
-            }
-            app.post(post_data, callback, true);
-        },
-        clear_pic_space:(file_inf, next)=>{
-            app.update_upload_status(file_inf.$band, 'בודק הרשאות...', app.update_status_stages.UPLOAD, 2, 0);
-            var post_data = {
-                act_id: "delete_pic",
-                uid: app.dat.user.uid,
-                otp: app.dat.user.otp,
-                slot: file_inf.slot
-            };
-            const callback = {
-                on_error_response: (error)=>{ app.pic_mngr.on_error_level_1(file_inf, error); },
-                on_connect_error: (error)=>{ app.pic_mngr.on_error_level_1(file_inf, error); },
-                on_js_error: (error)=>{ app.pic_mngr.on_error_level_1(file_inf, error); },
-                on_success : (response)=>{
-                    app.update_upload_status(file_inf.$band, 'בודק הרשאות...', app.update_status_stages.UPLOAD, 2, 100);
-                    next();
-                }
-            }
-            app.post(post_data, callback, true);
-        },
-        upload_thumbnail:(file_inf, next)=>{
-            const bucket = new AWS.S3(app.dat.s3_bucket_cred);
-            var blobData = js.dataURItoBlob(file_inf.thumbnail);
-            var data = {
-                Bucket: "zaparton",
-                Key: 'tn/' + file_inf.thumbnail_file_name, 
-                Body: blobData,
-                ContentType: 'image/jpeg'
-            };
-            app.update_upload_status(file_inf.$band, 'מעלה צלמית', app.update_status_stages.UPLOAD, 3, 0);
-            app.dat.uploads_in_progress[file_inf.slot] = bucket.upload(data, function(err, data){
-                if (err) app.pic_mngr.on_error_level_1(file_inf, err)
-                else next()
-            }).on('httpUploadProgress', (progress)=> {
-                app.update_upload_status(file_inf.$band, 'מעלה צלמית', app.update_status_stages.UPLOAD, 3, Math.round(progress.loaded / progress.total * 100));
-            });
-        },
-        upload_pic:(file_inf, next)=>{
-            const bucket = new AWS.S3(app.dat.s3_bucket_cred);
-            var data = {
-                Bucket: "zaparton",
-                Key: 'pics/' + file_inf.file_name, 
-                Body: file_inf.file,
-                ContentType: file_inf.file.type
-            };
-            app.update_upload_status(file_inf.$band, 'מעלה תמונה', app.update_status_stages.UPLOAD, 4, 0);
-            app.dat.uploads_in_progress[file_inf.slot] = bucket.upload(data, function(err, data){
-                if (err) app.pic_mngr.on_error_level_1(file_inf, err)
-                else next()
-            }).on('httpUploadProgress', (progress)=> {
-                app.update_upload_status(file_inf.$band, 'מעלה תמונה', app.update_status_stages.UPLOAD, 4, Math.round(progress.loaded / progress.total * 100));
-            });
-        },
-        save_pic:(file_inf, next)=>{
-            app.update_upload_status(file_inf.$band, 'שומר שינויים', app.update_status_stages.UPLOAD, 5, 0);
-            var post_data = {
-                act_id: "save_pic",
-                uid: app.dat.user.uid,
-                otp: app.dat.user.otp,
-                slot: file_inf.slot,
-                file_name: file_inf.file_name,
-                org_file_name: file_inf.org_file_name,
-                exif:JSON.stringify(file_inf.exif)
-            };
-            const callback = {
-                on_error_response: (error)=>{ app.pic_mngr.on_error_level_1(file_inf, error); },
-                on_connect_error: (error)=>{ app.pic_mngr.on_error_level_1(file_inf, error); },
-                on_js_error: (error)=>{ app.pic_mngr.on_error_level_1(sfile_inf, error); },
-                on_success : (response)=>{
-                    app.update_upload_status(file_inf.$band, 'שומר שינויים', app.update_status_stages.UPLOAD, 5, 100);
-                    next(response.new_pic);
-                }
-            }
-            app.post(post_data, callback, true);
-        },
-    },
-    // save_pic:(slot, file_name, org_file_name, on_success, on_failure)=>{
-    //     var post_data = {
-    //         act_id: "save_pic",
-    //         uid: app.dat.user.uid,
-    //         otp: app.dat.user.otp,
-    //         slot: slot,
-    //         file_name: file_name,
-    //         org_file_name: org_file_name
-    //     };
-    //     app.post(post_data, callback, true);
-    // },
-    upload_thumbnail:(thumbnail, uniqueFileName, on_progress, on_success, on_failure)=>{
-        const bucket = new AWS.S3(app.dat.s3_bucket_cred);
-        var blobData = js.dataURItoBlob(thumbnail);
-        var data = {
-            Bucket: "zaparton",
-            Key: 'tn/' + uniqueFileName, 
-            Body: blobData,
-            ContentType: 'image/jpeg'
-        };
-        on_progress?.call(this, 0,);
-        return bucket.upload(data, function(err, data){
-            if (err) on_failure?.call(this, data, err)
-            else on_success?.call(this, data, err)
-        }).on('httpUploadProgress', (progress)=> {
-            on_progress?.call(this, Math.round(progress.loaded / progress.total * 100));
-        });
-    },
-    upload_picture:(file, uniqueFileName, on_progress, on_success, on_failure)=>{
-        const bucket = new AWS.S3(app.dat.s3_bucket_cred);
-        var data = {
-            Bucket: "zaparton",
-            Key: 'pics/' + uniqueFileName, 
-            Body: file,
-            ContentType: file.type
-        };
-        on_progress?.call(this, 0,);
-        return bucket.upload(data, function(err, data){
-            if (err) on_failure?.call(this, data, err)
-            else on_success?.call(this, data, err)
-        }).on('httpUploadProgress', (progress)=> {
-            on_progress?.call(this, Math.round(progress.loaded / progress.total * 100));
-        });
-    },
-    update_pic_upload_status(slot, status){
-        $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .frm_section_row.pic_contest_status`).hide();
-        $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .frm_section_row.pic_actions`).hide();
-        app.set_pic_status_idle_button(slot, status);
-        const $pic_status = $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .frm_section_row[pic_status]`);
-        $pic_status.hide();
-        $pic_status.attr('pic_status', status);
-        $pic_status.slideDown();
-    },
-    set_pic_status_idle_button(slot, status){
-        const $pic_status = $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .frm_section_row[pic_status]`);
-        $pic_status.attr('pic_status', status);
-        const $dropzone = $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .drop_zone`);
-        if (status == 'idle') $pic_status.click(()=>{$dropzone.click()});
-        else $pic_status.unbind('click');
-    },
-    set_pic_status(slot, status_code){
-        const $pic_score_status = $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .frm_section_row[pic_contest_status]`);
-        const contest_status = 
-            (status_code == 1) ? 'filter_rejected' : 
-            (status_code == 2) ? 'filter_quality_idle' : 
-            (status_code == 3) ? 'filter_quality_rejected' : 
-            (status_code == 4) ? 'filter_score_idle' : 'filter_idle'; 
-        $pic_score_status.attr('pic_contest_status', contest_status);
-        $pic_score_status.css('display', 'flex');
-        const $pic_score_actions = $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .pic_actions`);
-        if (contest_status == 'filter_idle') 
-            $pic_score_actions.css('display', 'flex');
-            else $pic_score_actions.css('display', 'none');
-        $bt_delete = $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .pic_actions .bt_pic_delete`);
-        $bt_delete.click((e)=>{
-            swal({
-                title: 'מחיקת תמונה',
-                html: "רגע... רגע...<br>למחוק את התמונה?",
-                showCancelButton: true, confirmButtonColor: '#3085d6', cancelButtonColor: '#d33', confirmButtonText: 'כן', cancelButtonText: 'לא',
-                onAfterClose:()=>{if (swal.ok) do_logout();}
-            }).then(function(result){
-                if (result.dismiss) return;
-                const file_inf = {
-                    slot: slot,
-                    $band: $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}]`)
-                }
-                app.pic_mngr.delete_pic(file_inf, ()=>{
-                    app.build_pic(slot);
-                });
-            });
-        });
-    },
-    disable_pic_mask(slot){
-        const $pic_box_mask = $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .pic_box_mask`);
-        $pic_box_mask.removeClass('pic_box_mask_link');
-        $pic_box_mask.unbind('click');
-        $pic_box_mask.addClass('mask_disabled');
-    },
-    show_pic_mask(slot, fname, as_link){
-        const $pic_box_mask = $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .pic_box_mask`);
-        if (as_link) {
-            $pic_box_mask.addClass('pic_box_mask_link');
-            $pic_box_mask.click(()=>{window.open(`${app.dat.s3_bucket_url}/pics/${fname}?rnd=${js.random_str(4)}`)});
-        } else {
-            $pic_box_mask.removeClass('pic_box_mask_link');
-            $pic_box_mask.unbind('click');
-        }
-        $pic_box_mask.show();
-    },
-    build_pic(slot, file_item){
-        $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}]`).html($("template#pic-band").html());
-        app.init_drop_zone($(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .drop_zone`)[0]);
-        $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .pic_error`).click(app.pic_mngr.restore_pic_click);
-        app.set_pic_status_idle_button(slot, 'idle');
-        if (file_item) {
-            const fname = js.extract_file_name(file_item[2]);
-            const img = $(`#pic_boxes_wrapper div[slot_idx=${file_item[1]}] img`);
-            img.attr('src', `${app.dat.s3_bucket_url}/tn/${fname}.jpg?rnd=${js.random_str(4)}`);
-            img.attr('alt', `${app.dat.s3_bucket_url}/pics/${file_item[3]}?rnd=${js.random_str(4)}`);
-            img.attr('title', `${app.dat.s3_bucket_url}/pics/${file_item[3]}?rnd=${js.random_str(4)}`);
-            $(`#pic_boxes_wrapper div[slot_idx=${file_item[1]}] p`).hide();
-            app.set_pic_status_idle_button(file_item[1], 'ok');
-            img.fadeIn();
-            app.set_pic_status(file_item[1], file_item[5]);
-            app.show_pic_mask(file_item[1], file_item[2], true);
-        }
-    },
-    build_pics:(response)=>{
-        app.dat.pics = response.pics;
-        for (let i = 1; i <= 3; i++) {app.build_pic(i);};
-        $.each(app.dat.pics, (i, item)=>{if (item) app.build_pic(item[1], item)});
-    },
     build_user_info:(response)=>{
         app.dat.user = {
             uid: response.user[0],
-            number: response.user[1],
-            otp: response.user[2],
-            name: response.user[3],
-            birth: response.user[4],
-            gender : response.user[5],
-            email : response.user[6],
-            phone : response.user[7],
-            kkl_mail : response.user[8],
-            level : response.user[9]
+            otp: response.user[1],
+            name: response.user[2]
         }
-        app.dat.campaign = (response.campaign) ? {
-            id: response.campaign[0],
-            title: response.campaign[1],
-            sub_id: response.campaign[2],
-            sub_title: response.campaign[3],
-            status: response.campaign[4]
-        } : null;
-        window.localStorage.setObj("zaparton-user", app.dat.user);
-        window.localStorage.setObj("zaparton-campaign", app.dat.campaign);
+        window.localStorage.setObj("zaparton-judge", app.dat.user);
         $("#user_box_head_name").html(app.dat.user.name);
         $("#user_box_head_id").html(app.dat.user.uid);
-        $("#eb_profile_name").val(app.dat.user.name);
-        $("#eb_profile_email").val(app.dat.user.email);
-        $("#eb_profile_birth").val(app.dat.user.birth);
-        $("#sl_gender").val(app.dat.user.gender);
-        $("#eb_profile_phone").val(app.dat.user.phone);
-        $("#sl_level").val(app.dat.user.level);
-        $("#cb_kkl_male").prop("checked", (app.is_new_user())?true:app.dat.user.kkl_mail);
-        $("#header_title_1").html(app.dat.campaign?.title);
-        $("#header_title_2").html(app.dat.campaign?.sub_title);
+    },
+    build_campaign:(response)=>{
+        // app.dat.campaign = window.localStorage.getObj("zaparton-judge-campaign") || response.campaign_list[0];
+        app.dat.campaign = app.dat.idx.campaign_by_id[response.campaign_sub_id];
+        window.localStorage.setObj("zaparton-judge-campaign", app.dat.campaign);
+        $("#campaign_title").html(app.dat.campaign.sub_title);
+        app.build_theme();
+    },
+    build_theme:()=>{
+        document.documentElement.style.setProperty('--campaign-color', app.dat.campaign.color);
+    },
+    build_campaign_list:(response)=>{
+        app.dat.campaign_list = response.campaign_list;
+        app.dat.active_campaign_count = 0;
+        $.each(response.campaign_list, (i, campaign)=>{
+            app.dat.idx.campaign_by_id[campaign.sub_id] = campaign;
+        });
+    },
+    change_campaign:(campaign)=>{
+        app.dat.campaign = campaign;
+        window.localStorage.setObj("zaparton-judge-campaign", app.dat.campaign);
+        window.location.reload();
+    },
+    build_campaign_menu:()=>{
+        var html = ''
+        $.each(app.dat.campaign_list, (i, campaign)=>{
+            html += `<div id="bt_campaign_${campaign.sub_id}" class="bt_campaign"><div></div>${campaign.sub_title}</div>`;
+        });
+        $("#dv_campaign_menu_mask>div").html(html);
+        $.each(app.dat.campaign_list, (i, campaign)=>{
+            $("#bt_campaign_" + campaign.sub_id + ">div").css("background-color", campaign.color);
+            $("#bt_campaign_" + campaign.sub_id).click(()=>{app.change_campaign(campaign)});
+        });
+    },
+    reshow_error_pic:($pic_wrapper, err_class)=>{
+        $pic_wrapper.find(".pic_error").hide();
+        $pic_wrapper.find(err_class).show();
+        const last = $pic_wrapper.parent().children(".pic_wrapper:last");
+        if (last.length>0) $pic_wrapper.insertAfter(last);
+        $pic_wrapper.slideDown();
+    },
+    screening_accept:($pic_wrapper)=>{
+        var post_data = {
+            act_id: "screening_accept",
+            uid: app.dat.user.uid,
+            pid: $pic_wrapper.attr('pid'),
+            file_name: $pic_wrapper.attr('file_name')
+        };
+        $pic_wrapper.slideUp();
+        app.post(post_data,{
+            on_success :(response)=>{$pic_wrapper.remove();},
+            on_error_response: (error)=>{app.reshow_error_pic($pic_wrapper, '.pic_srv_error')},
+            on_connect_error:(error)=>{app.reshow_error_pic($pic_wrapper, '.pic_con_error')},
+            on_js_error:(error)=>{app.reshow_error_pic($pic_wrapper, '.pic_js_error')}
+        }, true);
+    },
+    screening_reject:($pic_wrapper)=>{
+        var post_data = {
+            act_id: "screening_reject",
+            uid: app.dat.user.uid,
+            pid: $pic_wrapper.attr('pid'),
+            file_name: $pic_wrapper.attr('file_name')
+        };
+        $pic_wrapper.slideUp();
+        app.post(post_data,{
+            on_success :(response)=>{$pic_wrapper.remove();},
+            on_error_response: (error)=>{app.reshow_error_pic($pic_wrapper, '.pic_srv_error')},
+            on_connect_error:(error)=>{app.reshow_error_pic($pic_wrapper, '.pic_con_error')},
+            on_js_error:(error)=>{app.reshow_error_pic($pic_wrapper, '.pic_js_error')}
+        }, true);
+    },
+    scoring_save:($pic_wrapper)=>{
+        var post_data = {
+            act_id: "scoring_save",
+            uid: app.dat.user.uid,
+            pid: $pic_wrapper.attr('pid'),
+            file_name: $pic_wrapper.attr('file_name'),
+            score: $pic_wrapper.attr('score')
+        };
+        $pic_wrapper.slideUp();
+        app.post(post_data,{
+            on_success :(response)=>{$pic_wrapper.remove();},
+            on_error_response: (error)=>{app.reshow_error_pic($pic_wrapper, '.pic_srv_error')},
+            on_connect_error:(error)=>{app.reshow_error_pic($pic_wrapper, '.pic_con_error')},
+            on_js_error:(error)=>{app.reshow_error_pic($pic_wrapper, '.pic_js_error')}
+        }, true);
+    },
+
+    build_pics:(response)=>{
+        app.dat.pics.to_screen = [];
+        app.dat.pics.to_quality_screen = [];
+        app.dat.pics.to_score = [];
+        $("#page_screening").html("");
+        $("#page_quality_screening").html("");
+        $("#page_scorring").html("");
+        $.each(response.pics, (i, pic_arr)=>{
+            const pic = {
+                file_name:pic_arr[2],
+                pid:pic_arr[9],
+                status: pic_arr[5],
+                level: pic_arr[10],
+                exif: pic_arr[11]
+            }
+            if (pic.status == 0) { 
+                app.dat.pics.to_screen.push(pic); 
+                app.dat.pics.to_quality_screen.push(pic); // !!!test
+                app.dat.pics.to_score.push(pic); // !!!test
+            }
+            else if (pic.status == 2) { app.dat.pics.to_quality_screen.push(pic); }
+            else if (pic.status == 4) { app.dat.pics.to_score.push(pic); }
+        });
+        var html = ''
+        $.each(app.dat.pics.to_screen, (i, pic)=>{ 
+            // const exif_box = $('');
+            $("#json").html('');
+            var exif_html = '<div style="text-align:center">⚠️ No EXIF Attached</div>';
+            if (pic.exif != '') {
+                var jsonViewer = new JSONViewer();
+                document.querySelector("#json").appendChild(jsonViewer.getContainer());
+                var json = JSON.parse(pic.exif);
+                jsonViewer.showJSON(json, -1, 1);
+                exif_html = $("#json").html();
+                $("#json").html('');
+            }
+            html += 
+                `<div class="pic_wrapper" file_name="${pic.file_name}" pid="${pic.pid}">` + 
+                    `<div class="pic_mask"></div>` + 
+                    `<img class="pic" src="${app.dat.s3_bucket_url}/tn/${js.extract_file_name(pic.file_name)}.jpg?rnd=${js.random_str(4)}" />` +
+                    `<div class="exif_box">${exif_html}</div>` +
+                    `<div class="pic_toolbox">` + 
+                        `<input type="button" class="bt_pic_toolbox bt_accept" value="">` +
+                        `<input type="button" class="bt_pic_toolbox bt_reject" value="">` +
+                    `</div>` + 
+                    `<div class="pic_error pic_js_error">⚠️ הפעולה נכשלה (1)</div>` +
+                    `<div class="pic_error pic_srv_error">⚠️ הפעולה נכשלה (2)</div>` +
+                    `<div class="pic_error pic_con_error">⚠️ הפעולה נכשלה (בעיית תקשורת)</div>` +
+                `</div>`;
+        });
+        $("#page_screening").html(html);
+        $("#page_screening .pic").click((ev)=>{window.open(`${app.dat.s3_bucket_url}/pics/${$(ev.target).closest(".pic_wrapper").attr("file_name")}?rnd=${js.random_str(4)}`)});
+        $("#page_screening .bt_accept").click((ev)=>{app.screening_accept($(ev.target).closest(".pic_wrapper"))});
+        $("#page_screening .bt_reject").click((ev)=>{app.screening_reject($(ev.target).closest(".pic_wrapper"))});
+
+        var html = ''
+        $.each(app.dat.pics.to_quality_screen, (i, pic)=>{ 
+            html += 
+                `<div class="pic_wrapper" file_name="${pic.file_name}" pid="${pic.pid}">` + 
+                    `<div class="pic_mask"></div>` + 
+                    `<img class="pic" src="${app.dat.s3_bucket_url}/tn/${js.extract_file_name(pic.file_name)}.jpg" />` +
+                    `<div class="pic_toolbox">` + 
+                        `<input type="button" class="bt_pic_toolbox bt_accept" value="">` +
+                        `<input type="button" class="bt_pic_toolbox bt_reject" value="">` +
+                    `</div>` + 
+                    `<div class="pic_error pic_js_error">⚠️ הפעולה נכשלה (1)</div>` +
+                    `<div class="pic_error pic_srv_error">⚠️ הפעולה נכשלה (2)</div>` +
+                    `<div class="pic_error pic_con_error">⚠️ הפעולה נכשלה (בעיית תקשורת)</div>` +
+                `</div>`;
+        });
+        $("#page_quality_screening").html(html);
+        $("#page_quality_screening .pic").click((ev)=>{window.open(`${app.dat.s3_bucket_url}/pics/${$(ev.target).closest(".pic_wrapper").attr("file_name")}`)});
+        $("#page_quality_screening .bt_accept").click((ev)=>{app.screening_accept($(ev.target).closest(".pic_wrapper"))});
+        $("#page_quality_screening .bt_reject").click((ev)=>{app.screening_reject($(ev.target).closest(".pic_wrapper"))});
+
+        var html = ''
+        $.each(app.dat.pics.to_score, (i, pic)=>{ 
+            html += 
+                `<div class="pic_wrapper" file_name="${pic.file_name}" pid="${pic.pid}">` + 
+                    `<div class="pic_mask"></div>` + 
+                    `<img class="pic" src="${app.dat.s3_bucket_url}/tn/${js.extract_file_name(pic.file_name)}.jpg" />` +
+                    `<div class="pic_toolbox">` + 
+                        `<input type="button" class="bt_pic_toolbox bt_save_score" value="">` +
+                        `<input type="button" class="bt_star" score="5" value="">` +
+                        `<input type="button" class="bt_star" score="4" value="">` +
+                        `<input type="button" class="bt_star" score="3" value="">` +
+                        `<input type="button" class="bt_star" score="2" value="">` +
+                        `<input type="button" class="bt_star" score="1" value="">` +
+                    `</div>` + 
+                    `<div class="pic_error pic_js_error">⚠️ הפעולה נכשלה (1)</div>` +
+                    `<div class="pic_error pic_srv_error">⚠️ הפעולה נכשלה (2)</div>` +
+                    `<div class="pic_error pic_con_error">⚠️ הפעולה נכשלה (בעיית תקשורת)</div>` +
+                `</div>`;
+        });
+        $("#page_scoring").html(html);
+        $("#page_scoring .pic").click((ev)=>{window.open(`${app.dat.s3_bucket_url}/pics/${$(ev.target).closest(".pic_wrapper").attr("file_name")}`)});
+        $("#page_scoring .bt_star").click((ev)=>{$(ev.target).closest(".pic_wrapper").attr("score", $(ev.target).attr("score"))});
+        $("#page_scoring .bt_save_score").click((ev)=>{app.scoring_save($(ev.target).closest(".pic_wrapper"))});
+
     },
     rebuild:(response)=>{
         app.dat.server_load_response = JSON.parse(JSON.stringify(response));
         app.build_user_info(response);
         app.build_pics(response);
+        app.build_campaign_list(response);
+        app.build_campaign_menu();
+        app.build_campaign(response);
         app.scroll_home();
         app.on_after_rebuild?.call();
     },
@@ -492,14 +383,19 @@ var app = {
         $("#user_box_head_name").html('');
         $("#user_box_head_id").html('');
         app.dat.user = null;
-        app.dat.pics = null;
+        app.dat.pics = {
+            to_screen:null,
+            to_quality_screen:null,
+            to_score:null
+        };
         app.dat.campaign = null;
     },
     clear_storage:()=>{
-        window.localStorage.setObj("zaparton-user", null);
+        window.localStorage.setObj("zaparton-judge", null);
     },
     changed:()=>{
-        return $(".user_toolbox_enabled").length > 0;
+        return false;
+        // return $(".user_toolbox_enabled").length > 0;
     },
     show_login_page:()=>{
         $("#eb_login").val("");
@@ -529,16 +425,9 @@ var app = {
     help_message_txt:{
         welcome: 
             '<div id="help_welcome">' + 
-                '<div class="help_paragraph">ברוכים הבאים לממשק ההרשמה למעורבות ההורים בכרמים. מוזמנים להירשם לפעילויות בהן תרצו להשתלב. שימו לב, ההרשמה הינה לרבעון הקרוב והיא משותפת לזוג ההורים.</div>' +
-                '<div class="help_paragraph">מצאו פעילויות ולחצו על הכפתור "הצטרפ/י".<br>הפעילויות אליהן הצטרפתם נאספות ומופיעות בצדו השמאלי של המסך.</div>' +
-                '<div class="help_paragraph">העזרו באפשרויות הסינון שבראש הדף כדי למצוא פעילויות לרוחכם.</div>' +
-                '<div class="help_nagging"><input id="cb_help_welcome_nagging" type="checkbox" checked="true" /><label for="cb_help_welcome_nagging">הבנתי, אין צורך להציג הודעה זו שוב.</label></div>' +
-            '</div>',
-        signup:'<div id="help_signup">' + 
-            '<div class="help_paragraph">המשיכו לחפש ולהצטרף לפעילויות נוספות, ולסיום לחצו "שמירה".</div>' +
-                '<div class="help_paragraph">בכל שלב (גם לאחר השמירה) ניתן להסיר ההצטרפות ע"י לחיצה על צלמית הפח, המופיעה במעבר העכבר, מעל כל פעילות ברשימה שלכם בצד שמאל.</div>' + 
-                '<div class="help_nagging"><input id="cb_help_signup_nagging" type="checkbox" checked="true" /><label for="cb_help_signup_nagging">הבנתי, אין צורך להציג הודעה זו שוב.</label></div>' +
-            '</div'
+            '<div class="help_paragraph">טקסט הסבר קצר על אופן השימוש.</div>' +
+            '<div class="help_nagging"><input id="cb_help_welcome_nagging" type="checkbox" checked="true" /><label for="cb_help_welcome_nagging">הבנתי, אין צורך להציג הודעה זו שוב.</label></div>' +
+            '</div>'
     },
     help_message:{
         show_welcome: ()=>{
@@ -564,14 +453,6 @@ var app = {
             });
         },
     },
-    is_new_user:()=>{
-        return (!app.dat.user || app.dat.user.name == '');
-    },
-    default_view:()=>{
-        $(`#side_menu>div[tab_id=2]`).toggleClass('disabled', app.is_new_user());
-        $(`#side_menu>div[tab_id=3]`).toggleClass('disabled', app.is_new_user());
-        app.change_tab((app.is_new_user())?1:2);
-    },
     login:(uid, otp, on_connect_error, on_user_not_found)=>{
         $(".dv_login_error_msg").hide();
         app.clear();
@@ -579,6 +460,8 @@ var app = {
         otp = otp || $("#eb_login_2").val().trim();
         var post_data = {
             act_id: "login",
+            user_type: "judge",
+            campaign_sub_id: window.localStorage.getObj("zaparton-judge-campaign")?.sub_id,
             uid: uid,
             otp: otp
         };
@@ -608,14 +491,19 @@ var app = {
         uid = $("#eb_login").val().trim();
         if (uid == "") return;
         var post_data = {
-            act_id: "login_request",
+            act_id: "login_judge_request",
+            user_type: "judge",
             uid: uid
         };
         app.post(post_data,{
             on_success :(response)=>{
                 console.log(response);
-                $("#frm_login").hide();
-                $("#frm_login_2").fadeIn();
+                if (response.user_exists) {
+                    $("#frm_login").hide();
+                    $("#frm_login_2").fadeIn();
+                } else {
+                    app.pop_err("משתמש לא נמצא");
+                }
             },
             on_error_response: (error)=>{
                 app.pop_err('השרת מדווח על תקלה בביצוע הפעולה');
@@ -675,7 +563,7 @@ var app = {
                     app.pop_err('השרת מדווח על תקלה בביצוע הפעולה');
                 }
             });
-            }
+        }
     },
     toggle_menu:()=>{
         const ratio = $("#header").width() / $("#header_title_1>span").width();
@@ -753,7 +641,7 @@ var app = {
         });
     },
     init_user: ()=>{
-        app.dat.user = window.localStorage.getObj("zaparton-user");
+        app.dat.user = window.localStorage.getObj("zaparton-judge");
         console.log("app.init_user", app.dat.user);
     },
     show_screen_message: msg=>{
@@ -810,41 +698,43 @@ var app = {
                     tmp_img.addEventListener("load", function () {
                         app.show_pic_mask(slot_idx);
                         EXIF.getData(tmp_img, function() {
-                            console.log(EXIF.getAllTags(this));
-                            var thumbnailImage = app.createThumbnail(tmp_img);
-                            img.src = thumbnailImage;
-                            img.alt = file.name;
-                            $thumb_loader.fadeOut();
-                            app.update_upload_status($band, 'מעבד צלמית', app.update_status_stages.UPLOAD, 1, 100);
-                            
-                            const file_inf = {
-                                slot: slot_idx,
-                                file_name: uniqueFileName,
-                                org_file_name: file.name,
-                                $band: $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot_idx}]`),
-                                $pic_status: $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot_idx}] .frm_section_row[pic_status]`),
-                                thumbnail_file_name: js.extract_file_name(uniqueFileName) + '.jpg',
-                                thumbnail: thumbnailImage,
-                                exif: EXIF.getAllTags(this),
-                                file:file
-                            }
-                            app.update_pic_upload_status(file_inf.slot, 'uploading');
-                            // file_inf.$pic_status.attr('pic_status', 'uploading')
-                            app.pic_mngr.clear_pic_space(file_inf, ()=>{
-                                app.dat.pics[file_inf.slot-1] = null;
-                                app.pic_mngr.upload_thumbnail(file_inf, ()=>{
-                                    app.pic_mngr.upload_pic(file_inf, ()=>{
-                                        app.pic_mngr.save_pic(file_inf, (new_pic)=>{
-                                            app.dat.pics[slot_idx-1] = new_pic;
-                                            app.build_pic(slot_idx, new_pic);
-                                            // app.update_pic_upload_status(file_inf.slot, 'ok');
-                                            // app.show_pic_mask(slot_idx, file_inf.file_name, true);
-                                            // app.set_pic_status(slot_idx, 0);
-                                            // file_inf.$pic_status.attr('pic_status', 'ok')
-                                        })
+                            // console.log(EXIF.getTag(this, "Make"));
+                            // console.log(EXIF.getTag(this, "Model"));
+                            // console.log(EXIF.getTag(this, "DateTimeOriginal"));
+                            // console.log(EXIF.getTag(this, "GPSInfo"));
+                        });
+                        var thumbnailImage = app.createThumbnail(tmp_img);
+                        img.src = thumbnailImage;
+                        img.alt = file.name;
+                        $thumb_loader.fadeOut();
+                        app.update_upload_status($band, 'מעבד צלמית', app.update_status_stages.UPLOAD, 1, 100);
+                        
+                        const file_inf = {
+                            slot: slot_idx,
+                            file_name: uniqueFileName,
+                            org_file_name: file.name,
+                            $band: $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot_idx}]`),
+                            $pic_status: $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot_idx}] .frm_section_row[pic_status]`),
+                            thumbnail_file_name: js.extract_file_name(uniqueFileName) + '.jpg',
+                            thumbnail: thumbnailImage,
+                            file:file
+                        }
+                        app.update_pic_upload_status(file_inf.slot, 'uploading');
+                        // file_inf.$pic_status.attr('pic_status', 'uploading')
+                        app.pic_mngr.clear_pic_space(file_inf, ()=>{
+                            app.dat.pics[file_inf.slot-1] = null;
+                            app.pic_mngr.upload_thumbnail(file_inf, ()=>{
+                                app.pic_mngr.upload_pic(file_inf, ()=>{
+                                    app.pic_mngr.save_pic(file_inf, (new_pic)=>{
+                                        app.dat.pics[slot_idx-1] = new_pic;
+                                        app.build_pic(slot_idx, new_pic);
+                                        // app.update_pic_upload_status(file_inf.slot, 'ok');
+                                        // app.show_pic_mask(slot_idx, file_inf.file_name, true);
+                                        // app.set_pic_status(slot_idx, 0);
+                                        // file_inf.$pic_status.attr('pic_status', 'ok')
                                     })
                                 })
-                            });
+                            })
                         });
                     });
                 }
