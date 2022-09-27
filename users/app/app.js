@@ -67,6 +67,13 @@ var js = {
     },
     extract_file_extension:(full_name)=>{
         return (full_name||'').split('.').pop();
+    },
+    random_str:(len, set)=>{
+        var text = "";
+        var set = set || "0123456789";
+        var len = len || 5;
+        for(var i=0; i < len; i++) text += set.charAt(Math.floor(Math.random() * set.length));
+        return text;
     }
 }
 
@@ -196,13 +203,23 @@ var app = {
     },
     pic_mngr : {
         on_error_level_1:(file_inf, error)=>{
+            $(`#pic_boxes_wrapper .pic_band[slot_idx=${file_inf.slot}] .frm_section_row.pic_contest_status`).hide();
+            $(`#pic_boxes_wrapper .pic_band[slot_idx=${file_inf.slot}] .frm_section_row.pic_actions`).hide();
+            $(`#pic_boxes_wrapper .pic_band[slot_idx=${file_inf.slot}] .frm_section_row[pic_status]`).hide();
+            $(`#pic_boxes_wrapper .pic_band[slot_idx=${file_inf.slot}] .pic_error`).show();
+            app.disable_pic_mask(file_inf.slot);
             console.log(`on_error_level_1: slot:${file_inf.slot}, code:${error.code}, desc:${error.desc}`);
         },
         on_error_level_2:(file_inf, text)=>{
             console.log(`on_error_level_2: slot:${slot}, text:${text}`);
         },
+        restore_pic_click:(e)=>{
+            const slot = $(e.target).closest('.pic_band').attr("slot_idx");
+            app.build_pic(slot, app.dat.pics[slot-1]);
+        },
         delete_pic:(file_inf, next)=>{
-            app.update_upload_status(file_inf.$band, 'בודק הרשאות...', 2, 0);
+            app.update_pic_upload_status(file_inf.slot, 'uploading');
+            app.update_upload_status(file_inf.$band, 'מוחק תמונה...', app.update_status_stages.DELETE, 2, 0);
             var post_data = {
                 act_id: "delete_pic",
                 uid: app.dat.user.uid,
@@ -210,11 +227,30 @@ var app = {
                 slot: file_inf.slot
             };
             const callback = {
-                on_error_response: (error)=>{ pic_mngr.on_error_level_1(file_inf, error); },
-                on_connect_error: (error)=>{ pic_mngr.on_error_level_1(file_inf, error); },
-                on_js_error: (error)=>{ pic_mngr.on_error_level_1(file_inf, error); },
+                on_error_response: (error)=>{ app.pic_mngr.on_error_level_1(file_inf, error); },
+                on_connect_error: (error)=>{ app.pic_mngr.on_error_level_1(file_inf, error); },
+                on_js_error: (error)=>{ app.pic_mngr.on_error_level_1(file_inf, error); },
                 on_success : (response)=>{
-                    app.update_upload_status(file_inf.$band, 'בודק הרשאות...', 2, 100);
+                    app.update_upload_status(file_inf.$band, 'מוחק תמונה...', app.update_status_stages.DELETE, 2, 100);
+                    next();
+                }
+            }
+            app.post(post_data, callback, true);
+        },
+        clear_pic_space:(file_inf, next)=>{
+            app.update_upload_status(file_inf.$band, 'בודק הרשאות...', app.update_status_stages.UPLOAD, 2, 0);
+            var post_data = {
+                act_id: "delete_pic",
+                uid: app.dat.user.uid,
+                otp: app.dat.user.otp,
+                slot: file_inf.slot
+            };
+            const callback = {
+                on_error_response: (error)=>{ app.pic_mngr.on_error_level_1(file_inf, error); },
+                on_connect_error: (error)=>{ app.pic_mngr.on_error_level_1(file_inf, error); },
+                on_js_error: (error)=>{ app.pic_mngr.on_error_level_1(file_inf, error); },
+                on_success : (response)=>{
+                    app.update_upload_status(file_inf.$band, 'בודק הרשאות...', app.update_status_stages.UPLOAD, 2, 100);
                     next();
                 }
             }
@@ -229,12 +265,12 @@ var app = {
                 Body: blobData,
                 ContentType: 'image/jpeg'
             };
-            app.update_upload_status(file_inf.$band, 'מעלה צלמית', 3, 0);
+            app.update_upload_status(file_inf.$band, 'מעלה צלמית', app.update_status_stages.UPLOAD, 3, 0);
             app.dat.uploads_in_progress[file_inf.slot] = bucket.upload(data, function(err, data){
-                if (err) pic_mngr.on_error_level_1(file_inf, err)
+                if (err) app.pic_mngr.on_error_level_1(file_inf, err)
                 else next()
             }).on('httpUploadProgress', (progress)=> {
-                app.update_upload_status(file_inf.$band, 'מעלה צלמית', 3, Math.round(progress.loaded / progress.total * 100));
+                app.update_upload_status(file_inf.$band, 'מעלה צלמית', app.update_status_stages.UPLOAD, 3, Math.round(progress.loaded / progress.total * 100));
             });
         },
         upload_pic:(file_inf, next)=>{
@@ -245,31 +281,32 @@ var app = {
                 Body: file_inf.file,
                 ContentType: file_inf.file.type
             };
-            app.update_upload_status(file_inf.$band, 'מעלה תמונה', 4, 0);
+            app.update_upload_status(file_inf.$band, 'מעלה תמונה', app.update_status_stages.UPLOAD, 4, 0);
             app.dat.uploads_in_progress[file_inf.slot] = bucket.upload(data, function(err, data){
-                if (err) pic_mngr.on_error_level_1(file_inf, err)
+                if (err) app.pic_mngr.on_error_level_1(file_inf, err)
                 else next()
             }).on('httpUploadProgress', (progress)=> {
-                app.update_upload_status(file_inf.$band, 'מעלה תמונה', 4, Math.round(progress.loaded / progress.total * 100));
+                app.update_upload_status(file_inf.$band, 'מעלה תמונה', app.update_status_stages.UPLOAD, 4, Math.round(progress.loaded / progress.total * 100));
             });
         },
         save_pic:(file_inf, next)=>{
-            app.update_upload_status(file_inf.$band, 'שומר שינויים', 5, 0);
+            app.update_upload_status(file_inf.$band, 'שומר שינויים', app.update_status_stages.UPLOAD, 5, 0);
             var post_data = {
                 act_id: "save_pic",
                 uid: app.dat.user.uid,
                 otp: app.dat.user.otp,
                 slot: file_inf.slot,
                 file_name: file_inf.file_name,
-                org_file_name: file_inf.org_file_name
+                org_file_name: file_inf.org_file_name,
+                exif:JSON.stringify(file_inf.exif)
             };
             const callback = {
-                on_error_response: (error)=>{ pic_mngr.on_error_level_1(file_inf, error); },
-                on_connect_error: (error)=>{ pic_mngr.on_error_level_1(file_inf, error); },
-                on_js_error: (error)=>{ pic_mngr.on_error_level_1(sfile_inf, error); },
+                on_error_response: (error)=>{ app.pic_mngr.on_error_level_1(file_inf, error); },
+                on_connect_error: (error)=>{ app.pic_mngr.on_error_level_1(file_inf, error); },
+                on_js_error: (error)=>{ app.pic_mngr.on_error_level_1(sfile_inf, error); },
                 on_success : (response)=>{
-                    app.update_upload_status(file_inf.$band, 'שומר שינויים', 5, 100);
-                    next();
+                    app.update_upload_status(file_inf.$band, 'שומר שינויים', app.update_status_stages.UPLOAD, 5, 100);
+                    next(response.new_pic);
                 }
             }
             app.post(post_data, callback, true);
@@ -320,6 +357,9 @@ var app = {
         });
     },
     update_pic_upload_status(slot, status){
+        $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .frm_section_row.pic_contest_status`).hide();
+        $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .frm_section_row.pic_actions`).hide();
+        app.set_pic_status_idle_button(slot, status);
         const $pic_status = $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .frm_section_row[pic_status]`);
         $pic_status.hide();
         $pic_status.attr('pic_status', status);
@@ -330,7 +370,7 @@ var app = {
         $pic_status.attr('pic_status', status);
         const $dropzone = $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .drop_zone`);
         if (status == 'idle') $pic_status.click(()=>{$dropzone.click()});
-        else $pic_status.click(()=>{});
+        else $pic_status.unbind('click');
     },
     set_pic_status(slot, status_code){
         const $pic_score_status = $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .frm_section_row[pic_contest_status]`);
@@ -354,38 +394,55 @@ var app = {
                 onAfterClose:()=>{if (swal.ok) do_logout();}
             }).then(function(result){
                 if (result.dismiss) return;
-                console.log($(e.target).closest(".pic_band").attr("slot_idx"));
+                const file_inf = {
+                    slot: slot,
+                    $band: $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}]`)
+                }
+                app.pic_mngr.delete_pic(file_inf, ()=>{
+                    app.build_pic(slot);
+                });
             });
         });
+    },
+    disable_pic_mask(slot){
+        const $pic_box_mask = $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .pic_box_mask`);
+        $pic_box_mask.removeClass('pic_box_mask_link');
+        $pic_box_mask.unbind('click');
+        $pic_box_mask.addClass('mask_disabled');
     },
     show_pic_mask(slot, fname, as_link){
         const $pic_box_mask = $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .pic_box_mask`);
         if (as_link) {
             $pic_box_mask.addClass('pic_box_mask_link');
-            $pic_box_mask.click(()=>{window.open(`${app.dat.s3_bucket_url}/pics/${fname}`)});
+            $pic_box_mask.click(()=>{window.open(`${app.dat.s3_bucket_url}/pics/${fname}?rnd=${js.random_str(4)}`)});
         } else {
             $pic_box_mask.removeClass('pic_box_mask_link');
-            $pic_box_mask.click(()=>{});
+            $pic_box_mask.unbind('click');
         }
         $pic_box_mask.show();
     },
+    build_pic(slot, file_item){
+        $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}]`).html($("template#pic-band").html());
+        app.init_drop_zone($(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .drop_zone`)[0]);
+        $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .pic_error`).click(app.pic_mngr.restore_pic_click);
+        app.set_pic_status_idle_button(slot, 'idle');
+        if (file_item) {
+            const fname = js.extract_file_name(file_item[2]);
+            const img = $(`#pic_boxes_wrapper div[slot_idx=${file_item[1]}] img`);
+            img.attr('src', `${app.dat.s3_bucket_url}/tn/${fname}.jpg?rnd=${js.random_str(4)}`);
+            img.attr('alt', `${app.dat.s3_bucket_url}/pics/${file_item[3]}?rnd=${js.random_str(4)}`);
+            img.attr('title', `${app.dat.s3_bucket_url}/pics/${file_item[3]}?rnd=${js.random_str(4)}`);
+            $(`#pic_boxes_wrapper div[slot_idx=${file_item[1]}] p`).hide();
+            app.set_pic_status_idle_button(file_item[1], 'ok');
+            img.fadeIn();
+            app.set_pic_status(file_item[1], file_item[5]);
+            app.show_pic_mask(file_item[1], file_item[2], true);
+        }
+    },
     build_pics:(response)=>{
         app.dat.pics = response.pics;
-        for (let i = 1; i <= 3; i++) {app.set_pic_status_idle_button(i, 'idle');};
-        $.each(app.dat.pics, (i, item)=>{
-            if (item) {
-                const fname = js.extract_file_name(item[2]);
-                const img = $(`#pic_boxes_wrapper div[slot_idx=${item[1]}] img`);
-                img.attr('src', `${app.dat.s3_bucket_url}/tn/${fname}.jpg`);
-                img.attr('alt', `${app.dat.s3_bucket_url}/pics/${item[3]}`);
-                img.attr('title', `${app.dat.s3_bucket_url}/pics/${item[3]}`);
-                $(`#pic_boxes_wrapper div[slot_idx=${item[1]}] p`).hide();
-                app.set_pic_status_idle_button(item[1], 'ok');
-                img.fadeIn();
-                app.set_pic_status(item[1], item[5]);
-                app.show_pic_mask(item[1], item[2], true);
-            }
-        });
+        for (let i = 1; i <= 3; i++) {app.build_pic(i);};
+        $.each(app.dat.pics, (i, item)=>{if (item) app.build_pic(item[1], item)});
     },
     build_user_info:(response)=>{
         app.dat.user = {
@@ -649,6 +706,18 @@ var app = {
         $(`#side_menu>div[tab_id=${tab_id}]`).addClass("selected");
     },
     init_buttons: ()=>{
+        $(".dv_login_logo").click(()=>{
+            console.log('boo');
+            var pr = new Pic(3);
+            pr.greet();
+            pr.logit();
+            pr.log_3();
+            // var pic = new Pic(22);
+            // pic.log_4();
+            // pic.log_1();
+            // pic.log_2();
+            // pic.log_3();
+        });
         $("#bt_home").click(app.scroll_home);
         $("#frm_login").submit((e)=>{
             e.preventDefault(e);
@@ -701,55 +770,52 @@ var app = {
         new ResizeObserver(app.toggle_menu).observe($("#header")[0]);
         $("#head_toolbox").mouseleave(app.toggle_menu);
     },
-    update_upload_status:($band, text, stage, stage_progress_percent)=>{
-        const stage_weight = [10, 10, 20, 50, 10];
-        const start_with = (stage==1)?0:stage_weight.slice(0, stage-1).reduce((a,b)=>a+b);
-        const step = (stage_weight[stage-1]*stage_progress_percent)/100;
+    update_status_stages:{
+        UPLOAD: [10, 10, 20, 50, 10],
+        DELETE: [0, 100]
+    },
+    update_upload_status:($band, text, stages, stage, stage_progress_percent)=>{
+        const start_with = (stage==1)?0:stages.slice(0, stage-1).reduce((a,b)=>a+b);
+        const step = (stages[stage-1]*stage_progress_percent)/100;
         const $progress = $band.find(".upload_progress");
         const overall_percent = Math.trunc(start_with + step);
         $progress.css('background', `linear-gradient(to left, #ffffff ${100-overall_percent}%, blue 0%)`);
         $progress.attr("progress", overall_percent + "%");
         $band.find(".upload_status").html(text + '...');
     },
-    init_drop_zones:()=>{
-        $(".drop_zone").each((i, drop_zone)=>{
-            const dropZone = drop_zone;
-            const inputElement = $(drop_zone).find("input[type='file']")[0];
-            const img = $(drop_zone).find("img")[0];
-            const p = $(drop_zone).find("p")[0];
-            const $thumb_loader = $(drop_zone).find(".img_thumb_loader");
-            const load_file = (file)=>{
-                if (!file) return;
-                $thumb_loader.fadeIn(()=>{
-                    const $band = $(drop_zone).closest('.pic_band');
-                    app.update_upload_status($band, 'מעבד צלמית', 1, 0);
-                    const $progress = $band.find(".upload_progress");
-                    const slot_idx = $band.attr("slot_idx");
-                    const uniqueFileName = ('' + app.dat.user.number + slot_idx + '.' + file.name.split('.').pop()).toLowerCase(); 
-                    img.style = "display:block;";
-                    p.style = 'display: none';
-                    const reader = new FileReader();
-                    reader.readAsDataURL(file);
-                    reader.onloadend = function () {
-                        const result = reader.result;
-                        let src = this.result;
-                        // img.src = src;
-                        // img.alt = file.name
-                        tmp_img = new Image();
-                        tmp_img.src = src;
-                        tmp_img.addEventListener("load", function () {
-                            app.show_pic_mask(slot_idx);
-                            EXIF.getData(tmp_img, function() {
-                                // console.log(EXIF.getTag(this, "Make"));
-                                // console.log(EXIF.getTag(this, "Model"));
-                                // console.log(EXIF.getTag(this, "DateTimeOriginal"));
-                                // console.log(EXIF.getTag(this, "GPSInfo"));
-                            });
+    init_drop_zone:(drop_zone)=>{
+        const inputElement = $(drop_zone).find("input[type='file']")[0];
+        const img = $(drop_zone).find("img")[0];
+        const p = $(drop_zone).find("p")[0];
+        const $thumb_loader = $(drop_zone).find(".img_thumb_loader");
+        const load_file = (file)=>{
+            if (!file) return;
+            $thumb_loader.fadeIn(()=>{
+                const $band = $(drop_zone).closest('.pic_band');
+                app.update_upload_status($band, 'מעבד צלמית', app.update_status_stages.UPLOAD, 1, 0);
+                const $progress = $band.find(".upload_progress");
+                const slot_idx = $band.attr("slot_idx");
+                const uniqueFileName = ('' + app.dat.user.number + slot_idx + '.' + file.name.split('.').pop()).toLowerCase(); 
+                img.style = "display:block;";
+                p.style = 'display: none';
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onloadend = function () {
+                    const result = reader.result;
+                    let src = this.result;
+                    // img.src = src;
+                    // img.alt = file.name
+                    tmp_img = new Image();
+                    tmp_img.src = src;
+                    tmp_img.addEventListener("load", function () {
+                        app.show_pic_mask(slot_idx);
+                        EXIF.getData(tmp_img, function() {
+                            console.log(EXIF.getAllTags(this));
                             var thumbnailImage = app.createThumbnail(tmp_img);
                             img.src = thumbnailImage;
                             img.alt = file.name;
                             $thumb_loader.fadeOut();
-                            app.update_upload_status($band, 'מעבד צלמית', 1, 100);
+                            app.update_upload_status($band, 'מעבד צלמית', app.update_status_stages.UPLOAD, 1, 100);
                             
                             const file_inf = {
                                 slot: slot_idx,
@@ -759,95 +825,46 @@ var app = {
                                 $pic_status: $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot_idx}] .frm_section_row[pic_status]`),
                                 thumbnail_file_name: js.extract_file_name(uniqueFileName) + '.jpg',
                                 thumbnail: thumbnailImage,
+                                exif: EXIF.getAllTags(this),
                                 file:file
                             }
                             app.update_pic_upload_status(file_inf.slot, 'uploading');
                             // file_inf.$pic_status.attr('pic_status', 'uploading')
-                            app.pic_mngr.delete_pic(file_inf, ()=>{
+                            app.pic_mngr.clear_pic_space(file_inf, ()=>{
+                                app.dat.pics[file_inf.slot-1] = null;
                                 app.pic_mngr.upload_thumbnail(file_inf, ()=>{
                                     app.pic_mngr.upload_pic(file_inf, ()=>{
-                                        app.pic_mngr.save_pic(file_inf, ()=>{
-                                            app.update_pic_upload_status(file_inf.slot, 'ok');
-                                            app.show_pic_mask(slot_idx, file_inf.file_name, true);
-                                            app.set_pic_status(slot_idx, 0);
+                                        app.pic_mngr.save_pic(file_inf, (new_pic)=>{
+                                            app.dat.pics[slot_idx-1] = new_pic;
+                                            app.build_pic(slot_idx, new_pic);
+                                            // app.update_pic_upload_status(file_inf.slot, 'ok');
+                                            // app.show_pic_mask(slot_idx, file_inf.file_name, true);
+                                            // app.set_pic_status(slot_idx, 0);
                                             // file_inf.$pic_status.attr('pic_status', 'ok')
                                         })
                                     })
                                 })
                             });
-
-                            /*
-                            app.dat.uploads_in_progress[slot_idx] = app.upload_thumbnail(
-                                thumbnailImage, 
-                                uniqueFileName, 
-                                (percent)=>{app.update_upload_status($band, 'מעלה צלמית', 2, percent);},
-                                (upload_info, data)=>{
-                                    app.dat.uploads_in_progress[slot_idx] = app.upload_picture(
-                                        file, 
-                                        uniqueFileName,
-                                        (percent)=>{app.update_upload_status($band, 'מעלה קובץ מקור', 3, percent);},
-                                        (upload_info, data)=>{
-                                            console.log('התמונה נשמרה בהצלחה');
-                                        },
-                                        (upload_info, err)=>{
-                                            console.log('תקלה בהעלאת התמונה', err);
-                                        }
-                                    );
-                                },
-                                (upload_info, err)=>{
-                                    console.log('תקלה בהעלאת התמונה', err);
-                                }
-                            );
-                            */
                         });
-                    }
+                    });
+                }
 
-
-                    // app.dat.uploads_in_progress[slot_idx] = app.upload_picture(
-                    //     file, 
-                    //     uniqueFileName,
-                    //     (percent)=>{
-                    //         $progress.css('background', `linear-gradient(to left, #ffffff ${100-percent}%, blue 0%)`);
-                    //         $progress.attr("progress", percent + "%")
-                    //     },
-                    //     (upload_info, data)=>{
-                    //         console.log('התמונה נשמרה בהצלחה');
-                    //     },
-                    //     (upload_info, err)=>{
-                    //         console.log('תקלה בהעלאת התמונה', err);
-                    //     }
-                    // );
-
-
-                    // app.dat.uploads_in_progress[slot_idx] = app.upload_picture(
-                    //     file, 
-                    //     uniqueFileName,
-                    //     (upload_info)=>{
-                    //         $progress.css('background', `linear-gradient(to left, #ffffff ${100-upload_info.progressStatus}%, blue 0%)`);
-                    //         $progress.attr("progress", upload_info.progressStatus + "%")
-                    //     },
-                    //     (upload_info, data)=>{
-                    //         console.log('התמונה נשמרה בהצלחה');
-                    //     },
-                    //     (upload_info, err)=>{
-                    //         console.log('תקלה בהעלאת התמונה', err);
-                    //     }
-                    // );
-                });
-            }
-            
-            inputElement.addEventListener('change', (e)=> {
-                load_file(inputElement.files[0]);
-            })
-            dropZone.addEventListener('click', () => inputElement.click());
-            dropZone.addEventListener('dragover', (e) => {
-                e.preventDefault();
             });
-            dropZone.addEventListener('drop', (e) => {
-                e.preventDefault();
-                load_file(e.dataTransfer.files[0]);
-            });
+        }
+        inputElement.addEventListener('change', (e)=> {
+            load_file(inputElement.files[0]);
+        })
+        drop_zone.addEventListener('click', () => inputElement.click());
+        drop_zone.addEventListener('dragover', (e) => {
+            e.preventDefault();
         });
+        drop_zone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            load_file(e.dataTransfer.files[0]);
+        });
+    },
+    init_drop_zones:()=>{
+        $(".drop_zone").each((i, drop_zone)=>{app.init_drop_zone(drop_zone)});
     },
     init: ()=>{
         console.log("app.init")
