@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>צפרתון קק"ל 2022</title>
+    <script src="lib/sweetalert2/sweetalert2.all.js"></script>
+    <link rel="icon" type="image/png" href="img/cramim96.png" />
+    <script src="lib/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="lib/json-viewer/json-viewer.css">
+    <script src="lib/json-viewer/json-viewer.js"></script>
+    <link rel="stylesheet" href="app/mobile.css">
+    <script src="app/app.js"></script>
+    <script src="app/mobile.js"></script>
+</head>
+<body class="select_disabled">
+    <div id="json" style="display:none"></div>
+    <div id="mask_div"></div>
+    <div id="dv_screen_message"><div>
+        <div><div id="dv_screen_message_logo"></div></div>
+        <div id="dv_screen_message_txt"></div>
+    </div></div>
+    <div id="dv_login">
+        <form id="frm_login"><table>
+            <tr><td>
+                <div id="dv_login_logo"></div>
+            </td></tr>
+            <tr><td id="dv_login_title">צפרתון קק"ל 2022</td></tr>
+            <tr><td id="dv_login_title2">כניסת שופטים</td></tr>
+            <tr><td>
+                <input id="eb_login" type="text" placeholder="כתובת אימייל">
+            </td></tr>
+            <tr><td id="td_login_bottom">
+                <input id="bt_login" type="submit" value="שלח קוד כניסה">
+            </td></tr>
+        </table></form>
+        <form id="frm_login_2"><table>
+            <tr><td>
+                <div id="dv_login_logo"></div>
+            </td></tr>
+            <tr><td id="dv_login_title">צפרתון קק"ל 2022</td></tr>
+            <tr><td id="dv_login_title2">כניסת שופטים</td></tr>
+            <tr><td>
+                <input id="eb_login_2" type="text" placeholder="קוד חד פעמי">
+            </td></tr>
+            <tr><td id="td_login_bottom">
+                <input id="bt_login_2" type="submit" value="כניסה">
+            </td></tr>
+        </table></form>
+    </div>
+    <div id="dv_header">
+        <div id="dv_header_title"><div><span>צפרתון קק"ל 2022</span><br><span id="campaign_title"></span></div></div>
+        <div id="ico_menu" class="ico_header ripple"></div>
+        <div id="dv_header_tabs">
+            <div id="tab_screening" page_id="screening" class="tab_title ripple">סינון ראשוני</div>
+            <div id="tab_quality_screening" page_id="quality_screening" class="tab_title ripple">סינון איכות</div>
+            <div id="tab_scoring" page_id="scoring" class="tab_title ripple">ניקוד</div>
+        </div>
+        <div id="tab_indicator_wrapper"><div id="tab_indicator"></div></div>
+    </div>
+    <div id="dv_menu_mask" class="dv_menu_mask">
+        <div class="dv_menu">
+            <input id="bt_refresh" type="button" value="רענן">
+            <input id="bt_change_campaign" type="button" value="מקצה">
+            <input id="bt_user_exit" type="button" value="יציאה">
+        </div>
+    </div>
+    <div id="dv_campaign_menu_mask" class="dv_menu_mask">
+        <div class="dv_menu">
+        </div>
+    </div>
+    <div id="page_screening" class="page">
+    </div>
+    <!--div id="page_toolbox_screening" class="page_toolbox">
+        <input id="bt_next" type="button" class="ripple" value="">
+        <input id="bt_accept" type="button" class="ripple" value="">
+        <input id="bt_reject" type="button" class="ripple" value="">
+        <input id="bt_prev" type="button" class="ripple" value="">
+    </div-->
+    <div id="page_quality_screening" class="page">
+    </div>
+    <!--div id="page_toolbox_quality_screening" class="page_toolbox">
+        <input id="bt_next" type="button" class="ripple" value="">
+        <input id="bt_accept" type="button" class="ripple" value="">
+        <input id="bt_reject" type="button" class="ripple" value="">
+        <input id="bt_prev" type="button" class="ripple" value="">
+    </div-->
+    <div id="page_scoring" class="page"><div id="activity_boxes_wrapper"></div></div>
+    </div>
+    <!--div id="page_toolbox_scoring" class="page_toolbox">
+        <input id="bt_next" type="button" class="ripple" value="">
+        <input id="bt_plus" type="button" class="ripple" value="">
+        <input id="bt_minus" type="button" class="ripple" value="">
+        <input id="bt_prev" type="button" class="ripple" value="">
+    </div-->
+    <!--div id="user_box_head_wrapper">
+        <div id="user_box_progress"></div>
+        <div id="user_box_head">
+            <div id="user_box_head_name"></div>
+            <div id="user_box_progress_desc"><span id="user_hours">0</span> מתוך <span id="hours_goal">0</span> שעות נדרשות</div>
+        </div>
+        <div id="user_toolbox">
+            <input id="bt_user_save" type="button" value="שמירה">
+            <input id="bt_user_abort" type="button" value="ביטול">
+        </div>
+    </div-->
+    <div id="ico_up" class="ripple"></div>
+</body>
+</html>
