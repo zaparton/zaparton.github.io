@@ -77,6 +77,16 @@ var js = {
     }
 }
 
+const APP_GLOBAL = {
+    PIC_STATUS : {
+        INITIAL : 0,
+        SCREEN_REJECTED: 1,
+        SCREEN_ACCEPTED: 2,
+        QUALITY_SCREEN_REJECTED: 3,
+        QUALITY_SCREEN_ACCEPTED: 4
+    }
+}
+
 var app = {
     dat:{
         srv_url: 'https://script.google.com/macros/s/AKfycbwMGsMJED0mc1xaJResbTz__WyC11EC2kAJbkZ0qaMbUu4SFZhpOVPDSLojk_YNrmXDtw/exec',
@@ -219,31 +229,23 @@ var app = {
         if (last.length>0) $pic_wrapper.insertAfter(last);
         $pic_wrapper.slideDown();
     },
-    screening_accept:($pic_wrapper)=>{
+    screening:($pic_wrapper, screen_act)=>{
         var post_data = {
-            act_id: "screening_accept",
+            act_id: "screening",
+            screen_act: screen_act,
             uid: app.dat.user.uid,
+            otp: app.dat.user.otp,
+            campaign_sub_id: app.dat.campaign.sub_id,
             pid: $pic_wrapper.attr('pid'),
             file_name: $pic_wrapper.attr('file_name')
         };
         $pic_wrapper.slideUp();
         app.post(post_data,{
-            on_success :(response)=>{$pic_wrapper.remove();},
-            on_error_response: (error)=>{app.reshow_error_pic($pic_wrapper, '.pic_srv_error')},
-            on_connect_error:(error)=>{app.reshow_error_pic($pic_wrapper, '.pic_con_error')},
-            on_js_error:(error)=>{app.reshow_error_pic($pic_wrapper, '.pic_js_error')}
-        }, true);
-    },
-    screening_reject:($pic_wrapper)=>{
-        var post_data = {
-            act_id: "screening_reject",
-            uid: app.dat.user.uid,
-            pid: $pic_wrapper.attr('pid'),
-            file_name: $pic_wrapper.attr('file_name')
-        };
-        $pic_wrapper.slideUp();
-        app.post(post_data,{
-            on_success :(response)=>{$pic_wrapper.remove();},
+            on_success :(response)=>{
+                console.log(response);
+                // $pic_wrapper.remove();
+                app.build_pics(response);
+            },
             on_error_response: (error)=>{app.reshow_error_pic($pic_wrapper, '.pic_srv_error')},
             on_connect_error:(error)=>{app.reshow_error_pic($pic_wrapper, '.pic_con_error')},
             on_js_error:(error)=>{app.reshow_error_pic($pic_wrapper, '.pic_js_error')}
@@ -253,6 +255,7 @@ var app = {
         var post_data = {
             act_id: "scoring_save",
             uid: app.dat.user.uid,
+            otp: app.dat.user.otp,
             pid: $pic_wrapper.attr('pid'),
             file_name: $pic_wrapper.attr('file_name'),
             score: $pic_wrapper.attr('score')
@@ -267,13 +270,15 @@ var app = {
     },
 
     build_pics:(response)=>{
+        if (response.campaign_sub_id != app.dat.campaign.sub_id) return;
         app.dat.pics.to_screen = [];
         app.dat.pics.to_quality_screen = [];
         app.dat.pics.to_score = [];
-        $("#page_screening").html("");
-        $("#page_quality_screening").html("");
-        $("#page_scorring").html("");
-        $.each(response.pics, (i, pic_arr)=>{
+        // $("#page_screening").html("");
+        // $("#page_quality_screening").html("");
+        // $("#page_scorring").html("");
+        var pics = response.pics.slice();
+        $.each(pics, (i, pic_arr)=>{
             const pic = {
                 file_name:pic_arr[2],
                 pid:pic_arr[9],
@@ -281,17 +286,17 @@ var app = {
                 level: pic_arr[10],
                 exif: pic_arr[11]
             }
-            if (pic.status == 0) { 
-                app.dat.pics.to_screen.push(pic); 
-                app.dat.pics.to_quality_screen.push(pic); // !!!test
-                app.dat.pics.to_score.push(pic); // !!!test
+            const $pic_exists = $(`.pic_wrapper[pid="${pic.pid}"]`);
+            const diff_status = ($pic_exists.length>0 && $pic_exists.attr("status") != pic.status);
+            if (diff_status) $pic_exists.remove();
+            if ($pic_exists.length == 0 || diff_status) {
+                if (pic.status == 0) app.dat.pics.to_screen.push(pic); 
+                else if (pic.status == 2) { app.dat.pics.to_quality_screen.push(pic); }
+                else if (pic.status == 4) { app.dat.pics.to_score.push(pic); }
             }
-            else if (pic.status == 2) { app.dat.pics.to_quality_screen.push(pic); }
-            else if (pic.status == 4) { app.dat.pics.to_score.push(pic); }
         });
         var html = ''
         $.each(app.dat.pics.to_screen, (i, pic)=>{ 
-            // const exif_box = $('');
             $("#json").html('');
             var exif_html = '<div style="text-align:center">⚠️ No EXIF Attached</div>';
             if (pic.exif != '') {
@@ -303,7 +308,7 @@ var app = {
                 $("#json").html('');
             }
             html += 
-                `<div class="pic_wrapper" file_name="${pic.file_name}" pid="${pic.pid}">` + 
+                `<div class="pic_wrapper" file_name="${pic.file_name}" pid="${pic.pid}" status="${pic.status}">` + 
                     `<div class="pic_mask"></div>` + 
                     `<img class="pic" src="${app.dat.s3_bucket_url}/tn/${js.extract_file_name(pic.file_name)}.jpg?rnd=${js.random_str(4)}" />` +
                     `<div class="exif_box">${exif_html}</div>` +
@@ -316,15 +321,15 @@ var app = {
                     `<div class="pic_error pic_con_error">⚠️ הפעולה נכשלה (בעיית תקשורת)</div>` +
                 `</div>`;
         });
-        $("#page_screening").html(html);
+        $(html).appendTo($("#page_screening"));
         $("#page_screening .pic").click((ev)=>{window.open(`${app.dat.s3_bucket_url}/pics/${$(ev.target).closest(".pic_wrapper").attr("file_name")}?rnd=${js.random_str(4)}`)});
-        $("#page_screening .bt_accept").click((ev)=>{app.screening_accept($(ev.target).closest(".pic_wrapper"))});
-        $("#page_screening .bt_reject").click((ev)=>{app.screening_reject($(ev.target).closest(".pic_wrapper"))});
+        $("#page_screening .bt_accept").click((ev)=>{app.screening($(ev.target).closest(".pic_wrapper"), APP_GLOBAL.PIC_STATUS.SCREEN_ACCEPTED)});
+        $("#page_screening .bt_reject").click((ev)=>{app.screening($(ev.target).closest(".pic_wrapper"), APP_GLOBAL.PIC_STATUS.SCREEN_REJECTED)});
 
         var html = ''
         $.each(app.dat.pics.to_quality_screen, (i, pic)=>{ 
             html += 
-                `<div class="pic_wrapper" file_name="${pic.file_name}" pid="${pic.pid}">` + 
+                `<div class="pic_wrapper" file_name="${pic.file_name}" pid="${pic.pid}" status="${pic.status}">` + 
                     `<div class="pic_mask"></div>` + 
                     `<img class="pic" src="${app.dat.s3_bucket_url}/tn/${js.extract_file_name(pic.file_name)}.jpg" />` +
                     `<div class="pic_toolbox">` + 
@@ -336,43 +341,48 @@ var app = {
                     `<div class="pic_error pic_con_error">⚠️ הפעולה נכשלה (בעיית תקשורת)</div>` +
                 `</div>`;
         });
-        $("#page_quality_screening").html(html);
+        $(html).appendTo($("#page_quality_screening"));
         $("#page_quality_screening .pic").click((ev)=>{window.open(`${app.dat.s3_bucket_url}/pics/${$(ev.target).closest(".pic_wrapper").attr("file_name")}`)});
-        $("#page_quality_screening .bt_accept").click((ev)=>{app.screening_accept($(ev.target).closest(".pic_wrapper"))});
-        $("#page_quality_screening .bt_reject").click((ev)=>{app.screening_reject($(ev.target).closest(".pic_wrapper"))});
+        $("#page_quality_screening .bt_accept").click((ev)=>{app.screening($(ev.target).closest(".pic_wrapper"), APP_GLOBAL.PIC_STATUS.QUALITY_SCREEN_ACCEPTED)});
+        $("#page_quality_screening .bt_reject").click((ev)=>{app.screening($(ev.target).closest(".pic_wrapper"), APP_GLOBAL.PIC_STATUS.QUALITY_SCREEN_REJECTED)});
 
         var html = ''
         $.each(app.dat.pics.to_score, (i, pic)=>{ 
             html += 
-                `<div class="pic_wrapper" file_name="${pic.file_name}" pid="${pic.pid}">` + 
+                `<div class="pic_wrapper" file_name="${pic.file_name}" pid="${pic.pid}"  status="${pic.status}">` + 
                     `<div class="pic_mask"></div>` + 
                     `<img class="pic" src="${app.dat.s3_bucket_url}/tn/${js.extract_file_name(pic.file_name)}.jpg" />` +
                     `<div class="pic_toolbox">` + 
-                        `<input type="button" class="bt_pic_toolbox bt_save_score" value="">` +
-                        `<input type="button" class="bt_star" score="5" value="">` +
-                        `<input type="button" class="bt_star" score="4" value="">` +
-                        `<input type="button" class="bt_star" score="3" value="">` +
-                        `<input type="button" class="bt_star" score="2" value="">` +
-                        `<input type="button" class="bt_star" score="1" value="">` +
+                        `<input disabled type="button" class="bt_pic_toolbox bt_save_score" value="">` +
+                        `<input type="button" class="bt_star" score="5" value="5">` +
+                        `<input type="button" class="bt_star" score="4" value="4">` +
+                        `<input type="button" class="bt_star" score="3" value="3">` +
+                        `<input type="button" class="bt_star" score="2" value="2">` +
+                        `<input type="button" class="bt_star" score="1" value="1">` +
                     `</div>` + 
                     `<div class="pic_error pic_js_error">⚠️ הפעולה נכשלה (1)</div>` +
                     `<div class="pic_error pic_srv_error">⚠️ הפעולה נכשלה (2)</div>` +
                     `<div class="pic_error pic_con_error">⚠️ הפעולה נכשלה (בעיית תקשורת)</div>` +
                 `</div>`;
         });
-        $("#page_scoring").html(html);
+        $(html).appendTo($("#page_scoring"));
         $("#page_scoring .pic").click((ev)=>{window.open(`${app.dat.s3_bucket_url}/pics/${$(ev.target).closest(".pic_wrapper").attr("file_name")}`)});
-        $("#page_scoring .bt_star").click((ev)=>{$(ev.target).closest(".pic_wrapper").attr("score", $(ev.target).attr("score"))});
+        $("#page_scoring .bt_star").click((ev)=>{
+            const score = $(ev.target).attr("score");
+            const $pic_wrapper = $(ev.target).closest(".pic_wrapper");
+            $pic_wrapper.attr("score", score);
+            $pic_wrapper.find('.bt_save_score').prop("disabled", score == 0);
+        });
         $("#page_scoring .bt_save_score").click((ev)=>{app.scoring_save($(ev.target).closest(".pic_wrapper"))});
 
     },
     rebuild:(response)=>{
         app.dat.server_load_response = JSON.parse(JSON.stringify(response));
         app.build_user_info(response);
-        app.build_pics(response);
         app.build_campaign_list(response);
         app.build_campaign_menu();
         app.build_campaign(response);
+        app.build_pics(response);
         app.scroll_home();
         app.on_after_rebuild?.call();
     },
