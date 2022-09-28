@@ -627,7 +627,7 @@ var app = {
              }, 
             on_error_response: (error)=>{
                 if (error.code == 4) {
-                    app.pop_err("לא מצאנו משפחה לפי המידע שהוקלד");
+                    app.pop_err("לא מצאנו משתמש לפי המידע שהוקלד");
                     if (on_user_not_found) on_user_not_found();
                 } else app.pop_srv_err(error);
             },
