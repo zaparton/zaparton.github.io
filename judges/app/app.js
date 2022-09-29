@@ -263,7 +263,9 @@ var app = {
         $pic_wrapper.slideUp();
         app.post(post_data,{
             on_success :(response)=>{$pic_wrapper.remove();},
-            on_error_response: (error)=>{app.reshow_error_pic($pic_wrapper, '.pic_srv_error')},
+            on_error_response: (error)=>{
+                // app.reshow_error_pic($pic_wrapper, '.pic_srv_error')
+            },
             on_connect_error:(error)=>{app.reshow_error_pic($pic_wrapper, '.pic_con_error')},
             on_js_error:(error)=>{app.reshow_error_pic($pic_wrapper, '.pic_js_error')}
         }, true);
@@ -542,7 +544,7 @@ var app = {
             gender: $("#sl_gender").val(),
             phone: $("#eb_profile_phone").val().trim(),
             level: $("#sl_level").val(),
-            kkl_mail: $("#cb_kkl_male").is(":checked")
+            kkl_mail: $("#cb_kkl_mail").is(":checked")
         }
         if (profile.name == '') set_validate_msg("#eb_profile_name", 'שדה חובה');
         if (profile.email == '') set_validate_msg("#eb_profile_email", 'שדה חובה');

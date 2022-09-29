@@ -235,6 +235,10 @@ body{
     box-shadow: 0 0 8px gray;
 }
 
+#head_title{
+    display:inline-block;
+}
+
 #header{
     position: relative;
     background-color: white;
@@ -1011,6 +1015,10 @@ body{
     margin-left: 2em;
 }
 
+.checkbox_wrapper{
+    display: block;
+}
+
 .checkbox_wrapper:hover{
     background-color: #f0f0f0;
     cursor: pointer;
@@ -1207,4 +1215,39 @@ body{
 
 .mask_disabled{
     background-color: #00000080;
+}
+
+#validation_note {
+    display: none;
+    background-color: #f13636;
+    color: white;
+    font-weight: 500;
+    border-radius: 10px;
+    text-align: center;
+    padding: 1em 0;
+}
+
+#login2_help{
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+#login2_help:hover{
+    color: blue;
+    text-decoration: initial;
+}
+
+#kkl_terms_error{
+    text-align: left;
+    cursor: initial;
+}
+
+.frm_info_box {
+    background-image: url(../img/info.svg);
+    background-repeat: no-repeat;
+    background-size: 3em;
+    background-position: right 1em top 1em;
+    text-align: right;
+    padding: 1em 5em 1em 1em;
+    box-sizing: border-box;
 }
