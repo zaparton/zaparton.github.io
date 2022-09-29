@@ -52,7 +52,7 @@
                 <input id="bt_login_2" class="bt_login" type="submit" value="כניסה">
             </td></tr>
             <tr><td id="td_login_register_link">
-                <a id="login_help">לא קיבלת? נשלח לך שוב!</a>
+                <a id="login2_help">לא קיבלת? נסה שנית!</a>
             </td></tr>
         </table></form>
     </div>
@@ -65,8 +65,10 @@
         <div class="div2" id="main_box">
             <div id="header">
                 <div id="header_logo"></div>
-                <div id="header_title_1"><span id="campaign_title">צפרתון קק"ל 2022</span></div>
-                <div id="header_title_2">תחרות צילום<span id="campaign_title_2"></span></div>
+                <div id="head_title">
+                    <div id="header_title_1"><span id="campaign_title">צפרתון קק"ל 2022</span></div>
+                    <div id="header_title_2">תחרות צילום<span id="campaign_title_2"></span></div>
+                </div>
                 <div id="ttl_mode"></div>
                 <div id="head_toolbox_ico"></div>
                 <table id="head_toolbox">
@@ -79,6 +81,7 @@
             </div>
             <div id="profile_wrapper" tab_id="1">
                 <div class="frm_section" style="margin-top: 3em;">
+                    <div class="frm_section_title" id="validation_note">⚠️ בעיות במילוי הטופס סומנו באדום</div>
                     <div class="frm_section_title">פרטים אישיים:</div>
                     <div class="frm_section_box">
                         <div class="frm_section_row">
@@ -131,10 +134,14 @@
                     </div>
                 </div>
                 <div class="frm_section">
-                    <div class="frm_section_title">דואר מקק"ל:</div>
+                    <div class="frm_section_title">הסכמות:</div>
                     <div class="frm_section_box">
                         <div class="frm_section_row checkbox_wrapper">
-                            <div class="frm_section_row_title"><input type="checkbox" checked name="cb_kkl_male" id="cb_kkl_male">אשמח לקבל דוא"ל בנושאי צפרות מכנפי קק"ל</div>
+                            <div class="frm_section_row_title"><input type="checkbox" checked name="cb_kkl_mail" id="cb_kkl_mail">אשמח לקבל דוא"ל בנושאי צפרות מכנפי קק"ל</div>
+                        </div>
+                        <div class="frm_section_row checkbox_wrapper">
+                            <div class="frm_section_row_title"><input type="checkbox" name="cb_kkl_terms" id="cb_kkl_terms">קראתי את <a href="zaparton_terms.pdf" target="_blank">התקנון</a> ותנאיו מוסכמים עלי</div>
+                            <div id="kkl_terms_error" class="frm_error_msg"></div>
                         </div>
                     </div>
                 </div>
@@ -145,8 +152,15 @@
             </div>
             <div id="pic_boxes_wrapper" tab_id="2">
                 <div class="frm_pics">
+                    <div class="frm_section">
+                        <div class="frm_section_box frm_info_box">
+                            <p>ברוכים הבאים לתחרות הצילום של צפרתון קק"ל</p>
+                            <p>ניתן להעלות תמונות רק מהתאריך: 12/10/2022</p>
+                        </div>
+                    </div>
                     <template id="pic-band"><div>
                         <div class="frm_section_box">
+                            <div class="frm_section_row pic_box_title"></div>
                             <div class="frm_section_row pic_box_wrapper">
                                 <div class="pic_box">
                                     <div class="drop_zone">
@@ -188,7 +202,6 @@
                 </div>
             </div>
             <div id="log_wrapper" tab_id="3">
-                <h1>LOG</h1>
             </div>
             <div id="bt_home"></div>
         </div>
@@ -202,7 +215,7 @@
             <div id="side_menu">
                 <div tab_id="1">הפרופיל שלי</div>
                 <div tab_id="2" class="disabled">התמונות שלי</div>
-                <div tab_id="3" class="disabled">לוג פעילות</div>
+                <div tab_id="3" class="disabled">חדשות</div>
             </div>
             <div id="user_toolbox">
                 <input id="bt_user_save" type="button" value="שמירה">
