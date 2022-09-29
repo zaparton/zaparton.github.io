@@ -74,6 +74,21 @@ var js = {
         var len = len || 5;
         for(var i=0; i < len; i++) text += set.charAt(Math.floor(Math.random() * set.length));
         return text;
+    },
+    calculateAge:(s_birthday)=> {
+        var now = new Date();
+        var past = new Date(s_birthday);
+        var nowYear = now.getFullYear();
+        var pastYear = past.getFullYear();
+        var age = nowYear - pastYear;
+        return age;
+    },
+    null_if_empty:(s)=>{
+        if (s) {
+            s = '' + s;
+            if (s.trim() == '') return null;
+        }
+        return s;
     }
 }
 
@@ -423,6 +438,7 @@ var app = {
     },
     build_pic(slot, file_item){
         $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}]`).html($("template#pic-band").html());
+        $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .pic_box_title`).html(`תמונה מס' ${slot}`)
         app.init_drop_zone($(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .drop_zone`)[0]);
         $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .pic_error`).click(app.pic_mngr.restore_pic_click);
         app.set_pic_status_idle_button(slot, 'idle');
@@ -462,10 +478,20 @@ var app = {
             title: response.campaign[1],
             sub_id: response.campaign[2],
             sub_title: response.campaign[3],
-            status: response.campaign[4]
+            status: response.campaign[4],
+            feedback_url: response.campaign[6],
+            support_url: response.campaign[7],
+            start_date: js.null_if_empty(response.campaign[8]),
+            end_date: js.null_if_empty(response.campaign[9])
         } : null;
         window.localStorage.setObj("zaparton-user", app.dat.user);
         window.localStorage.setObj("zaparton-campaign", app.dat.campaign);
+        $("#head_bt_contact").off("click").click(()=>{
+            window.open(app.dat.campaign.support_url);
+        });
+        $("#head_bt_feedback").off("click").click(()=>{
+            window.open(app.dat.campaign.feedback_url);
+        });
         $("#user_box_head_name").html(app.dat.user.name);
         $("#user_box_head_id").html(app.dat.user.uid);
         $("#eb_profile_name").val(app.dat.user.name);
@@ -474,7 +500,7 @@ var app = {
         $("#sl_gender").val(app.dat.user.gender);
         $("#eb_profile_phone").val(app.dat.user.phone);
         $("#sl_level").val(app.dat.user.level);
-        $("#cb_kkl_male").prop("checked", (app.is_new_user())?true:app.dat.user.kkl_mail);
+        $("#cb_kkl_mail").prop("checked", (app.is_new_user())?true:app.dat.user.kkl_mail);
         $("#header_title_1").html(app.dat.campaign?.title);
         $("#header_title_2").html(app.dat.campaign?.sub_title);
     },
@@ -615,7 +641,7 @@ var app = {
             on_success :(response)=>{
                 console.log(response);
                 $("#frm_login").hide();
-                $("#frm_login_2").fadeIn();
+                $("#frm_login_2").fadeIn(e=>$("#eb_login_2").focus());
             },
             on_error_response: (error)=>{
                 app.pop_err('השרת מדווח על תקלה בביצוע הפעולה');
@@ -631,8 +657,8 @@ var app = {
             $("#profile_wrapper .frm_error_msg").hide();
         }
         clear_validate_msg();
-        const set_validate_msg = (selector, msg, error_level)=>{
-            $(selector).closest(".frm_section_row_content").find(".frm_error_msg")
+        const set_validate_msg = (selector, msg, error_level, $holder)=>{
+            ($holder || $(selector).closest(".frm_section_row_content").find(".frm_error_msg"))
                 .html(msg)
                 .attr("valid",false)
                 .attr("error_level", error_level||1);
@@ -644,17 +670,23 @@ var app = {
             gender: $("#sl_gender").val(),
             phone: $("#eb_profile_phone").val().trim(),
             level: $("#sl_level").val(),
-            kkl_mail: $("#cb_kkl_male").is(":checked")
+            kkl_mail: $("#cb_kkl_mail").is(":checked")
         }
         if (profile.name == '') set_validate_msg("#eb_profile_name", 'שדה חובה');
         if (profile.email == '') set_validate_msg("#eb_profile_email", 'שדה חובה');
             else if (!js.is_valid_email(profile.email)) set_validate_msg("#eb_profile_email", 'לא הצלחנו להבין את הכתובת הזאת', 2);
         if (profile.birth_date == '') set_validate_msg("#eb_profile_birth", 'שדה חובה');
+
         if (profile.phone == '') set_validate_msg("#eb_profile_phone", 'שדה חובה');
             else if (!js.is_valid_phone(profile.phone)) set_validate_msg("#eb_profile_phone", 'לא הצלחנו להבין את המספר הזה', 2);
         if (profile.level == '') set_validate_msg("#sl_level", 'שדה חובה');
+        if (profile.level == 'YOUTH' && js.calculateAge(profile.birth_date) > 16) set_validate_msg("#sl_level", 'מקצה נוער מיועד לבני 16 ומטה');
+
+        if (!$("#cb_kkl_terms").is(":checked")) set_validate_msg("#cb_kkl_terms", 'חובה לקרוא את התקנון ולהסכים לתנאיו', 1, $('#kkl_terms_error'));
+
         if ($("#profile_wrapper .frm_error_msg[valid=false]").length>0) {
             app.scroll_home();
+            $("#validation_note").show();
             setTimeout(() => {
                 $("#profile_wrapper .frm_error_msg[valid=false]").slideDown();
             }, 200);
@@ -678,10 +710,9 @@ var app = {
             }
     },
     toggle_menu:()=>{
-        const ratio = $("#header").width() / $("#header_title_1>span").width();
-        const shrink = Boolean(ratio>2.15);
-        $("#head_toolbox").toggle(shrink);
-        $("#head_toolbox_ico").toggle(!shrink);
+        const shrink = $("#header").width() < ($("#head_title").width() + $("#head_toolbox").width());
+        $("#head_toolbox").toggle(!shrink);
+        $("#head_toolbox_ico").toggle(shrink);
     },
     init_scroll:()=>{
         $("#user_box").on("scroll", ()=>{
@@ -727,14 +758,9 @@ var app = {
             e.preventDefault(e);
             app.login();
         });
+        $("#login2_help").click(app.show_login_page);
         $("#head_bt_exit").click(()=>{
             app.logout();
-        });
-        $("#head_bt_contact").click(()=>{
-            window.open("https://chat.whatsapp.com/Bq5DjkU7uBL9ntJuuDcuCp");
-        });
-        $("#head_bt_feedback").click(()=>{
-            window.open("https://forms.gle/GsKDPFPszqFMJjsHA");
         });
         $("#head_toolbox_ico").click(()=>{
             $("#head_toolbox").show();
@@ -851,8 +877,40 @@ var app = {
 
             });
         }
+        const load_file_after_warning = (file)=>{
+            let today = new Date();
+            let yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() -1);
+
+            if (app.dat.campaign.start_date && today < new Date(app.dat.campaign.start_date)) {
+                app.pop_err('התחרות עדיין לא התחילה');
+                return;
+            }
+            if (app.dat.campaign.end_date && yesterday > new Date(app.dat.campaign.end_date)) {
+                app.pop_err('התחרות הסתיימה');
+                return;
+            }
+            swal({
+                title: 'לידיעתך',
+                html: 
+                    'שימו לב שאין חתימת צלם על התמונה!!' + '<br>' +
+                    'תמונה הנושאת חתימה לא תתקבל לתחרות!' + '<br>' +
+                    'האם להמשיך?',
+                showCancelButton: true, confirmButtonColor: '#3085d6', cancelButtonColor: '#d33', confirmButtonText: 'כן', cancelButtonText: 'לא',
+                // onAfterClose:()=>{if (swal.ok) do_logout();}
+            }).then(function(result){
+                if (result.dismiss) return;
+                load_file(file);
+            });
+        }
+        
+        inputElement.onclick = ()=> {
+            inputElement.value = null;
+        }
+
         inputElement.addEventListener('change', (e)=> {
-            load_file(inputElement.files[0]);
+            // load_file(inputElement.files[0]);
+            load_file_after_warning(inputElement.files[0]);
         })
         drop_zone.addEventListener('click', () => inputElement.click());
         drop_zone.addEventListener('dragover', (e) => {
@@ -860,7 +918,8 @@ var app = {
         });
         drop_zone.addEventListener('drop', (e) => {
             e.preventDefault();
-            load_file(e.dataTransfer.files[0]);
+            // load_file(e.dataTransfer.files[0]);
+            load_file_after_warning(e.dataTransfer.files[0]);
         });
     },
     init_drop_zones:()=>{
