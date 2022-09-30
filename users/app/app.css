@@ -66,6 +66,7 @@ body{
     inset: 0;
     background-image: url(../img/bg.jpg);
     background-attachment: fixed;
+    background-size: cover;
 }
 
 .user>div{ 
