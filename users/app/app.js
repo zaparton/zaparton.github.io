@@ -894,7 +894,7 @@ var app = {
                 title: 'לידיעתך',
                 html: 
                     'שימו לב שאין חתימת צלם על התמונה!!' + '<br>' +
-                    'תמונה הנושאת חתימה לא תתקבל לתחרות!' + '<br>' +
+                    'תמונה הנושאת חתימה לא תתקבל לתחרות!' + '<br><br>' +
                     'האם להמשיך?',
                 showCancelButton: true, confirmButtonColor: '#3085d6', cancelButtonColor: '#d33', confirmButtonText: 'כן', cancelButtonText: 'לא',
                 // onAfterClose:()=>{if (swal.ok) do_logout();}
