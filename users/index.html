@@ -52,7 +52,7 @@
                 <input id="bt_login_2" class="bt_login" type="submit" value="כניסה">
             </td></tr>
             <tr><td id="td_login_register_link">
-                <a id="login2_help">לא קיבלת? נסה שנית!</a>
+                <a id="login2_help">לא קיבלת? אפשר לנסות שוב!</a>
             </td></tr>
         </table></form>
     </div>
@@ -74,7 +74,7 @@
                 <table id="head_toolbox">
                     <tr>
                         <td id="head_bt_exit"><div class="head_bt"><span>יציאה</span></div></td>
-                        <td id="head_bt_feedback"><div  class="head_bt"><span>שלח משוב</span></div></td>
+                        <!--td id="head_bt_feedback"><div  class="head_bt"><span>שלח משוב</span></div></td-->
                         <td id="head_bt_contact"><div class="head_bt"><span>צור קשר</span></div></td>
                     </tr>
                 </table>
@@ -125,8 +125,9 @@
                                 <select name="sl_level" id="sl_level">
                                     <option value=""></option>
                                     <option value="YOUTH">נוער</option>
-                                    <option value="AMATEUR">חובבנים</option>
+                                    <option value="AMATEUR">חובבים</option>
                                     <option value="PROFESSIONAL">מקצוענים</option>
+                                    <option value="CELLULAR">טלפון נייד</option>
                                 </select>
                                 <div class="frm_error_msg"></div>
                             </div>
@@ -140,7 +141,7 @@
                             <div class="frm_section_row_title"><input type="checkbox" checked name="cb_kkl_mail" id="cb_kkl_mail">אשמח לקבל דוא"ל בנושאי צפרות מכנפי קק"ל</div>
                         </div>
                         <div class="frm_section_row checkbox_wrapper">
-                            <div class="frm_section_row_title"><input type="checkbox" name="cb_kkl_terms" id="cb_kkl_terms">קראתי את <a href="zaparton_terms.pdf" target="_blank">התקנון</a> ותנאיו מוסכמים עלי</div>
+                            <div class="frm_section_row_title"><input type="checkbox" name="cb_kkl_terms" id="cb_kkl_terms">קראתי את <a href="תקנון תחרות צילום 2022.pdf" target="_blank">התקנון</a> ותנאיו מוסכמים עלי</div>
                             <div id="kkl_terms_error" class="frm_error_msg"></div>
                         </div>
                     </div>
@@ -154,8 +155,8 @@
                 <div class="frm_pics">
                     <div class="frm_section">
                         <div class="frm_section_box frm_info_box">
-                            <p>ברוכים הבאים לתחרות הצילום של צפרתון קק"ל</p>
-                            <p>ניתן להעלות תמונות רק מהתאריך: 12/10/2022</p>
+                            <p>ברוכים הבאים לתחרות הצילום של צפרתון קק"ל!</p>
+                            <p>ניתן להעלות תמונות רק מיום 12/10/2022</p>
                         </div>
                     </div>
                     <template id="pic-band"><div>
@@ -166,7 +167,7 @@
                                     <div class="drop_zone">
                                         <div class="img_thumb_loader"></div>
                                         <img src="" alt="">
-                                        <p>גרור לכאן, או לחץ לבחירת קובץ</p>
+                                        <p>נא לגרור לכאן, או ללחוץ לבחירת קובץ</p>
                                         <input type="file" hidden>
                                     </div>
                                 </div>
@@ -181,11 +182,11 @@
                             </div>
                             <div class="frm_section_row pic_contest_status" pic_contest_status="filter_idle">
                                 <div class="frm_section_row_title">מצב שיפוט:</div>
-                                <div class="frm_section_row_content pic_contest_status_filter_idle">התמונה מחכה לסינון תנאי סף</div>
+                                <div class="frm_section_row_content pic_contest_status_filter_idle">התמונה ממתינה לסינון תנאי סף</div>
                                 <div class="frm_section_row_content pic_contest_status_filter_rejected">התמונה נבדקה ולצערנו לא עברה את תנאי הסף</div>
-                                <div class="frm_section_row_content pic_contest_status_quality_idle">התמונה מחכה לסינון איכות ראשוני</div>
+                                <div class="frm_section_row_content pic_contest_status_quality_idle">התמונה ממתינה לסינון איכות ראשוני</div>
                                 <div class="frm_section_row_content pic_contest_status_quality_rejected">התמונה נבדקה ולצערנו לא עברה את תנאי סף האיכות</div>
-                                <div class="frm_section_row_content pic_contest_status_score_idle">התמונה עברה את תנאי הסף ומחכה לשיפוט</div>
+                                <div class="frm_section_row_content pic_contest_status_score_idle">התמונה עברה את תנאי הסף וממתינה לדירוג</div>
                             </div>
                             <div class="frm_section_row pic_actions">
                                 <div class="frm_section_row_title ">פעולות:</div>
@@ -215,7 +216,7 @@
             <div id="side_menu">
                 <div tab_id="1">הפרופיל שלי</div>
                 <div tab_id="2" class="disabled">התמונות שלי</div>
-                <div tab_id="3" class="disabled">חדשות</div>
+                <div tab_id="3" class="disabled">הודעות</div>
             </div>
             <div id="user_toolbox">
                 <input id="bt_user_save" type="button" value="שמירה">
