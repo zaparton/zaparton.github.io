@@ -159,6 +159,7 @@ var app = {
     post: (postdata, callback, no_animation)=>{
         please_wait = callback.please_wait || app.please_wait;
         if (!no_animation) please_wait(true);
+        const ex_postdata = {is_mobile:js.is_mobile()};
         try{
             $.ajax({
                 type: 'POST',
@@ -168,7 +169,7 @@ var app = {
                 async:true,
                 //timeout: 10000,
                 cache: false,
-                data: JSON.stringify(postdata),
+                data: JSON.stringify($.extend(postdata, ex_postdata)),
                 success:(response)=>{
                     if (!no_animation) please_wait(false);
                     if (response?.error?.code && response?.error?.code != 0){
@@ -479,7 +480,7 @@ var app = {
         app.dat.user = {
             uid: response.user[0],
             number: response.user[1],
-            otp: response.user[2],
+            otp: (js.is_mobile()) ? response.user[10] : response.user[2],
             name: response.user[3],
             birth: response.user[4],
             gender : response.user[5],
@@ -714,6 +715,7 @@ var app = {
             var post_data = {
                 act_id: "save_profile",
                 uid: app.dat.user.uid,
+                otp: app.dat.user.otp,
                 profile : profile
             };
             app.post(post_data,{
@@ -992,7 +994,7 @@ var app = {
             swal({
                 title: 'לידיעתך',
                 html: 
-                    'שימו לב שאין חתימת צלם על התמונה!!' + '<br>' +
+                    'יש להמנע מהוספת חתימת צלם על התמונה!' + '<br>' +
                     'תמונה הנושאת חתימה לא תתקבל לתחרות!' + '<br><br>' +
                     'האם להמשיך?',
                 showCancelButton: true, confirmButtonColor: '#3085d6', cancelButtonColor: '#d33', confirmButtonText: 'כן', cancelButtonText: 'לא',
