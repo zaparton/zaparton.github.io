@@ -3,11 +3,19 @@ app = $.extend(app, {
         current_page:null,
         scroll_inf: {}
     },
-    change_tab:(id)=>{
-        $("#tab_indicator").css("width", $(`#tab_${id}`).outerWidth());
-        $("#tab_indicator").css("left", $(`#tab_${id}`).position().left);
-        $(".tab_title").addClass("tab_title_inactive");
-        $(`.tab_title[page_id="${id}"]`).removeClass("tab_title_inactive");
+    change_tab:(id, dont_change_page)=>{
+        if ($(`#tab_${id}`).hasClass("tab_disabled")) return;
+        const current_tab_id = $(`#dv_header_tabs>div[page_id]:not(.tab_title_inactive)`).attr("page_num_id");
+        const change = ()=>{
+            app.pages[id]?.enter?.call();
+            $("#tab_indicator").css("width", $(`#tab_${id}`).outerWidth());
+            $("#tab_indicator").css("left", $(`#tab_${id}`).position().left);
+            $(".tab_title").addClass("tab_title_inactive");
+            $(`.tab_title[page_id="${id}"]`).removeClass("tab_title_inactive");
+            if (!dont_change_page) app.change_page(id);
+        }
+        const leave = app.pages[current_tab_id]?.leave;
+        if (leave) leave(change); else change();
     },
     change_page:(id)=>{
         if (!app.nav.scroll_inf[id]) app.nav.scroll_inf[id] = {};
@@ -65,14 +73,6 @@ app = $.extend(app, {
         window.onbeforeunload = function(){
             if (app.changed() && $("#dv_login").is(":hidden"))  return 'אזהרה! השינויים לא נשמרו.';
         };
-        $("#bt_user_abort").click(()=>{
-            app.abort();
-        });
-        $("#bt_user_save").click(()=>{
-            app.change_tab("screening");
-            app.change_page("screening");
-            app.save();
-        });
         $("#ico_menu").click(()=>{
             $("#dv_menu_mask").show();
         });
@@ -82,17 +82,11 @@ app = $.extend(app, {
         $("#bt_user_exit").click(()=>{
             app.logout();
         });
-        $("#bt_user_contact").click(()=>{
-            window.open("https://chat.whatsapp.com/Bq5DjkU7uBL9ntJuuDcuCp");
-        });
-        $("#bt_user_feedback").click(()=>{
-            window.open("https://forms.gle/GsKDPFPszqFMJjsHA");
-        });
-        $("#bt_change_campaign").click(()=>{
-            $("#dv_campaign_menu_mask").show();
-        });
         $("#bt_refresh").click(()=>{
             window.location.reload();
+        });
+        $(".checkbox_wrapper").click((e)=>{
+            $(e.target).find("input[type=checkbox]").click();
         });
         $("#dv_campaign_menu_mask").click(()=>{
             $("#dv_campaign_menu_mask").fadeOut();
@@ -100,7 +94,7 @@ app = $.extend(app, {
         $("#tab_pics, #tab_profile, #tab_news").click((el)=>{
             const id = $(el.target).attr("page_id");
             app.change_tab(id);
-            app.change_page(id);
+            // app.change_page(id);
         })
         $("#bt_frm_profile_save").click((e)=>{
             app.save_profile();
@@ -114,41 +108,19 @@ app = $.extend(app, {
         $("#ico_up").click(()=>{
             $(window)[0].scrollTo({top:0, behavior: 'smooth'});
         });
-        $(".filter_box_item").click((ev)=>{
-            if (ev.target.tagName.toLowerCase() == "input") return;
-            $(ev.target).closest(".filter_box_item").find("input").click();
-        });
-        // $("#filter_box_wrapper input[type='checkbox']").change(app.filter);
-        $("#bt_apply_filter").click(()=>{
-            $("#dv_header").show();
-            $("#user_box_head_wrapper").show();
-            $("#dv_filter_toolbox").hide();
-            app.filter();
-            app.change_page("scoring");
-            app.change_tab("scoring");
-            $("#ico_filter").toggleClass("filter_is_on", $(".filter_box_item input[type='checkbox']:checked").length>0);
-            app.nav.scroll_inf["activuty"] = {};
-            $("#dv_header").removeClass("head_shrink");
-            $(window)[0].scrollTo({top:0});
-        });
-        $("#bt_clear_filter").click(()=>{
-            $("#filter_box_wrapper input[type='checkbox']").prop("checked", false);
-            app.set_filter_button_mode();
-            $("#bt_apply_filter").click();
-        });
         $(window).scroll(app.on_scroll);
         $(window).on("orientationchange", event => {
-            setTimeout(()=>{app.change_tab(app.nav.current_page)}, 100);
+            setTimeout(()=>{app.change_tab(app.nav.current_page, true)}, 100);
         });
-        /* disabled sep 1 2022
-        $("#login_register_link").click(()=>{
-            app.set_login_mode((app.dat.login_mode == "LOGIN")?"REGISTER":"LOGIN");
-        });
-        */
     },
     set_filter_button_mode: ()=> $("#ico_filter").toggleClass("filter_is_on", $(".filter_box_item input[type='checkbox']:checked").length>0),
     on_after_rebuild: ()=> {
         $("#campaign_title").html((app.dat.campaign)?app.dat.campaign.sub_title:'תחרות צילום - הרשמה לתחרות');
+        $(".drop_zone p").html("לחץ להעלאת תמונה");
+    },
+    default_view:()=>{
+        $("#tab_pics,#tab_news").toggleClass("tab_disabled", app.is_new_user());
+        app.change_tab((app.is_new_user())?"profile":"pics");
     },
     on_scroll:()=>{
         const st = $(window).scrollTop();
@@ -180,14 +152,11 @@ app = $.extend(app, {
         app.post(post_data,{
             on_success :(response)=>{
                 $("#dv_header").show();
-                $(document).ready(()=>{
-                    app.change_tab("profile");
-                    app.change_page("profile");
-                });
                 app.rebuild(response);
+                $(document).ready(app.default_view);
                 $("#user_box_head_wrapper").slideDown();
                 $("#dv_login").fadeOut();
-                app.help_message.show_welcome();
+                // app.help_message.show_welcome();
             }, 
             on_error_response: (error)=>{
                 if (error.code == 4) {

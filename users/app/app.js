@@ -501,7 +501,7 @@ var app = {
         } : null;
         window.localStorage.setObj("zaparton-user", app.dat.user);
         window.localStorage.setObj("zaparton-campaign", app.dat.campaign);
-        $("#head_bt_contact").off("click").click(()=>{
+        $("#head_bt_contact,#bt_user_contact").off("click").click(()=>{
             var url = app.dat.campaign?.support_url;
             if (!url) {
                 var selected_campaign = $('#sl_level').val();
