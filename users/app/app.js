@@ -92,6 +92,21 @@ var js = {
     }
 }
 
+const APP_GLOBAL = {
+    PAGES:{
+        PROFILE : 1,
+        PICS : 2,
+        NEWS : 3
+    },
+    PIC_STATUS : {
+        INITIAL : 0,
+        SCREEN_REJECTED: 1,
+        SCREEN_ACCEPTED: 2,
+        QUALITY_SCREEN_REJECTED: 3,
+        QUALITY_SCREEN_ACCEPTED: 4
+    }
+}
+
 var app = {
     dat:{
         srv_url: 'https://script.google.com/macros/s/AKfycbwMGsMJED0mc1xaJResbTz__WyC11EC2kAJbkZ0qaMbUu4SFZhpOVPDSLojk_YNrmXDtw/exec',
@@ -487,7 +502,33 @@ var app = {
         window.localStorage.setObj("zaparton-user", app.dat.user);
         window.localStorage.setObj("zaparton-campaign", app.dat.campaign);
         $("#head_bt_contact").off("click").click(()=>{
-            window.open(app.dat.campaign.support_url);
+            var url = app.dat.campaign?.support_url;
+            if (!url) {
+                var selected_campaign = $('#sl_level').val();
+                swal({
+                    title: '',
+                    html: "<div class='dlg_support_level'><div>נא לבחור את הקבוצה המתאימה</div><div>מקצה: <select name='dlg_sl_level' id='dlg_sl_level'></div></div>" ,
+                    showCancelButton: true, confirmButtonColor: '#3085d6', cancelButtonColor: '#d33', confirmButtonText: 'המשך', cancelButtonText: 'ביטול',
+                    onBeforeOpen:()=>{
+                        $('#dlg_sl_level').html($('#sl_level').html());
+                        $('#dlg_sl_level').val(selected_campaign);
+                    },
+                    preConfirm:()=>{
+                        selected_campaign = $("#dlg_sl_level").val();
+                        if (selected_campaign == '') swal.showValidationMessage('נא לבחור ערך מהרשימה');
+                        else $.each(response.campaign_list, (i, campaign)=>{
+                            if (campaign.sub_id == selected_campaign) {
+                                url = campaign.support_url;
+                                return false;
+                            }
+                        })
+                    }
+                }).then(function(result){
+                    if (result.dismiss) return;
+                    // $('#sl_level').val(selected_campaign);
+                    if (url) window.open(url);
+                });
+            } else window.open(url);
         });
         $("#head_bt_feedback").off("click").click(()=>{
             window.open(app.dat.campaign.feedback_url);
@@ -503,6 +544,8 @@ var app = {
         $("#cb_kkl_mail").prop("checked", (app.is_new_user())?true:app.dat.user.kkl_mail);
         $("#header_title_1").html(app.dat.campaign?.title);
         $("#header_title_2").html(app.dat.campaign?.sub_title);
+        $("#frm_profile_legal_section").toggle(app.is_new_user());
+        app.pages[APP_GLOBAL.PAGES.PROFILE].update_obj();
     },
     rebuild:(response)=>{
         app.dat.server_load_response = JSON.parse(JSON.stringify(response));
@@ -649,20 +692,8 @@ var app = {
         });
     },
     save_profile:()=>{
-        const clear_validate_msg = ()=>{
-            $("#profile_wrapper").find(".frm_error_msg")
-                .html('')
-                .attr("valid",true)
-                .attr("error_level", 0);
-            $("#profile_wrapper .frm_error_msg").hide();
-        }
-        clear_validate_msg();
-        const set_validate_msg = (selector, msg, error_level, $holder)=>{
-            ($holder || $(selector).closest(".frm_section_row_content").find(".frm_error_msg"))
-                .html(msg)
-                .attr("valid",false)
-                .attr("error_level", error_level||1);
-        }
+        const page = app.pages[APP_GLOBAL.PAGES.PROFILE]; 
+        page.clear_validate_msg();
         const profile = {
             name: $("#eb_profile_name").val().trim(),
             email: $("#eb_profile_email").val().trim(),
@@ -672,18 +703,7 @@ var app = {
             level: $("#sl_level").val(),
             kkl_mail: $("#cb_kkl_mail").is(":checked")
         }
-        if (profile.name == '') set_validate_msg("#eb_profile_name", 'שדה חובה');
-        if (profile.email == '') set_validate_msg("#eb_profile_email", 'שדה חובה');
-            else if (!js.is_valid_email(profile.email)) set_validate_msg("#eb_profile_email", 'לא הצלחנו להבין את הכתובת הזאת', 2);
-        if (profile.birth_date == '') set_validate_msg("#eb_profile_birth", 'שדה חובה');
-
-        if (profile.phone == '') set_validate_msg("#eb_profile_phone", 'שדה חובה');
-            else if (!js.is_valid_phone(profile.phone)) set_validate_msg("#eb_profile_phone", 'לא הצלחנו להבין את המספר הזה', 2);
-        if (profile.level == '') set_validate_msg("#sl_level", 'שדה חובה');
-        if (profile.level == 'YOUTH' && js.calculateAge(profile.birth_date) > 16) set_validate_msg("#sl_level", 'מקצה נוער מיועד לבני 16 ומטה');
-
-        if (!$("#cb_kkl_terms").is(":checked")) set_validate_msg("#cb_kkl_terms", 'חובה לקרוא את התקנון ולהסכים לתנאיו', 1, $('#kkl_terms_error'));
-
+        page.validate(profile);
         if ($("#profile_wrapper .frm_error_msg[valid=false]").length>0) {
             app.scroll_home();
             $("#validation_note").show();
@@ -728,13 +748,92 @@ var app = {
             if (st<50 && hc) $("#main_box").removeClass("head_shrink");
         });
     },
+    pages:{
+        1:{ //APP_GLOBAL.PAGES.PROFILE
+            obj:null,
+            clear_validate_msg:()=>{
+                $("#validation_note").hide();
+                $("#profile_wrapper").find(".frm_error_msg")
+                    .html('')
+                    .attr("valid",true)
+                    .attr("error_level", 0);
+                $("#profile_wrapper .frm_error_msg").hide();
+            },
+            set_validate_msg:(selector, msg, error_level, $holder)=>{
+                ($holder || $(selector).closest(".frm_section_row_content").find(".frm_error_msg"))
+                    .html(msg)
+                    .attr("valid",false)
+                    .attr("error_level", error_level||1);
+            },
+            validate:(profile)=>{
+                const page = app.pages[APP_GLOBAL.PAGES.PROFILE];
+                if (profile.name == '') page.set_validate_msg("#eb_profile_name", 'שדה חובה');
+                if (profile.email == '') page.set_validate_msg("#eb_profile_email", 'שדה חובה');
+                    else if (!js.is_valid_email(profile.email)) page.set_validate_msg("#eb_profile_email", 'לא הצלחנו להבין את הכתובת הזאת', 2);
+                if (profile.birth_date == '') page.set_validate_msg("#eb_profile_birth", 'שדה חובה');
+        
+                if (profile.phone == '') page.set_validate_msg("#eb_profile_phone", 'שדה חובה');
+                    else if (!js.is_valid_phone(profile.phone)) page.set_validate_msg("#eb_profile_phone", 'לא הצלחנו להבין את המספר הזה', 2);
+                if (profile.level == '') page.set_validate_msg("#sl_level", 'שדה חובה');
+                if (profile.level == 'YOUTH' && js.calculateAge(profile.birth_date) > 16) page.set_validate_msg("#sl_level", 'מקצה נוער מיועד לבני 16 ומטה');
+        
+                if (app.is_new_user() && !$("#cb_kkl_terms").is(":checked")) page.set_validate_msg("#cb_kkl_terms", 'חובה לקרוא את התקנון ולהסכים לתנאיו', 1, $('#kkl_terms_error'));
+            },
+            update_obj:()=>{
+                const page = app.pages[APP_GLOBAL.PAGES.PROFILE];
+                page.obj = page.get_obj();
+            },
+            get_obj:()=>{
+                return {
+                    name: $("#eb_profile_name").val().trim(),
+                    email: $("#eb_profile_email").val().trim(),
+                    birth_date: $("#eb_profile_birth").val().trim(),
+                    gender: $("#sl_gender").val(),
+                    phone: $("#eb_profile_phone").val().trim(),
+                    level: $("#sl_level").val()
+                };
+            },
+            restore:()=>{
+                const obj = app.pages[APP_GLOBAL.PAGES.PROFILE].obj;
+                $("#eb_profile_name").val(obj.name);
+                $("#eb_profile_email").val(obj.email);
+                $("#eb_profile_birth").val(obj.birth_date);
+                $("#sl_gender").val(obj.gender);
+                $("#eb_profile_phone").val(obj.phone);
+                $("#sl_level").val(obj.level);
+            },
+            enter:()=>{
+                app.pages[APP_GLOBAL.PAGES.PROFILE].update_obj();
+            },
+            leave:(proceed)=>{
+                const page = app.pages[APP_GLOBAL.PAGES.PROFILE];
+                if (JSON.stringify(page.get_obj()) == JSON.stringify(page.obj)) proceed();
+                else swal({
+                    title: 'בדיקה',
+                    html: "לצאת מבלי לשמור את השינויים?",
+                    showCancelButton: true, confirmButtonColor: '#3085d6', cancelButtonColor: '#d33', confirmButtonText: 'כן', cancelButtonText: 'לא'
+                }).then(function(result){
+                    if (result.dismiss) return;
+                    page.restore();
+                    page.clear_validate_msg();
+                    proceed();
+                });
+            }
+        }
+    },
     change_tab(tab_id){
         if ($(`#side_menu>div[tab_id=${tab_id}].selected`).length>0) return;
         if ($(`#side_menu>div[tab_id=${tab_id}].disabled`).length>0) return;
-        $("#main_box div[tab_id]").hide();
-        $(`#main_box div[tab_id=${tab_id}]`).fadeIn();
-        $("#side_menu>div[tab_id]").removeClass("selected");
-        $(`#side_menu>div[tab_id=${tab_id}]`).addClass("selected");
+        const current_tab_id = $(`#side_menu>div[tab_id].selected`).attr("tab_id");
+        const change = ()=>{
+            app.pages[tab_id]?.enter?.call();
+            $("#main_box div[tab_id]").hide();
+            $(`#main_box div[tab_id=${tab_id}]`).fadeIn();
+            $("#side_menu>div[tab_id]").removeClass("selected");
+            $(`#side_menu>div[tab_id=${tab_id}]`).addClass("selected");
+        }
+        const leave = app.pages[current_tab_id]?.leave;
+        if (leave) leave(change); else change();
     },
     init_buttons: ()=>{
         $(".dv_login_logo").click(()=>{
@@ -949,10 +1048,10 @@ var app = {
     start: ()=>{
         if (js.is_mobile()) {
             app.show_screen_message("הדף עדיין לא מתאים למכשירים ניידים");
-            // if (window.location.href.toLowerCase().indexOf("mobile.html")<0) {
-            //     const query = window.location.href.split('?')[1]||'';
-            //     window.location.href = "mobile.html" + ((query == '') ? '' : "?" + query);
-            // }
+            if (window.location.href.toLowerCase().indexOf("mobile.html")<0) {
+                const query = window.location.href.split('?')[1]||'';
+                window.location.href = "mobile.html" + ((query == '') ? '' : "?" + query);
+            }
         } else {
             app.init();
         }
