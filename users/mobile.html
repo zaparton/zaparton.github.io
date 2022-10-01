@@ -12,6 +12,8 @@
     <link rel="icon" type="image/png" href="img/zaparton96.png" />
     <script src="lib/jquery/3.5.1/jquery.min.js"></script>
     <link rel="stylesheet" href="app/mobile.css">
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.693.0.min.js"></script> 
+    <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
     <script src="app/app.js"></script>
     <script src="app/mobile.js"></script>
 </head>
@@ -54,9 +56,9 @@
         <div id="dv_header_title"><div><span>צפרתון קק"ל 2022</span><br><span id="campaign_title"></span></div></div>
         <div id="ico_menu" class="ico_header ripple"></div>
         <div id="dv_header_tabs">
-            <div id="tab_pics" page_id="pics" class="tab_title ripple">התמונות שלי</div>
-            <div id="tab_profile" page_id="profile" class="tab_title ripple">הפרופיל שלי</div>
-            <div id="tab_news" page_id="news" class="tab_title ripple">הודעות</div>
+            <div id="tab_profile" page_id="profile" page_num_id="1" class="tab_title ripple">הפרופיל שלי</div>
+            <div id="tab_pics" page_id="pics" page_num_id="2" class="tab_title ripple tab_disabled">התמונות שלי</div>
+            <div id="tab_news" page_id="news" page_num_id="3" class="tab_title ripple tab_disabled">הודעות</div>
         </div>
         <div id="tab_indicator_wrapper"><div id="tab_indicator"></div></div>
     </div>
@@ -186,7 +188,7 @@
                         <div class="frm_section_row_title"><input type="checkbox" checked name="cb_kkl_mail" id="cb_kkl_mail">אשמח לקבל דוא"ל בנושאי צפרות מכנפי קק"ל</div>
                     </div>
                     <div class="frm_section_row checkbox_wrapper">
-                        <div class="frm_section_row_title"><input type="checkbox" name="cb_kkl_terms" id="cb_kkl_terms">קראתי את <a href="תקנון תחרות צילום 2022.pdf" target="_blank">התקנון</a> ותנאיו מוסכמים עלי</div>
+                        <div class="frm_section_row_title"><input type="checkbox" name="cb_kkl_terms" id="cb_kkl_terms">קראתי את <a href="https://drive.google.com/file/d/1aLfVP1YQHvBrAB6o4yPpnREmQUtqlLgF/view?usp=sharing" target="_blank">התקנון</a> ותנאיו מוסכמים עלי</div>
                         <div id="kkl_terms_error" class="frm_error_msg"></div>
                     </div>
                 </div>
