@@ -102,10 +102,10 @@ body{
     background-color: var(--campaign-color);
     padding: 8px 15px 15px 100px;
     color: white;
-    background-image: url(../img/ico_profile.png);
+    background-image: url(../img/ico_profile.svg);
     background-repeat: no-repeat;
-    background-position: 4px center;
-    background-size: auto 80%;
+    background-position: 10px center;
+    background-size: auto 65%;
 }
 
 #user_box.head_shrink #user_box_head{
@@ -330,6 +330,9 @@ body{
 .swal2-popup .swal2-title{margin:4px;}
 .assign_dlg_initial .swal2-validation-message::before{background-color: yellow; color: black;border: 1px #80808080 solid;}
 .swal2-popup .swal2-content {font-weight: 500;}
+.swal2-popup .swal2-validation-message {
+    background: initial;
+ }
 .error_code{
     background-color: #f17475;
     font-size: 14px;
@@ -966,7 +969,8 @@ body{
 }
 
 .frm_section_row_content input,
-.frm_section_row_content select{
+.frm_section_row_content select,
+.dlg_support_level select{
     padding: 0.5em 1em;
     border-radius: 6px;
     outline: 0;
@@ -1251,4 +1255,8 @@ body{
     text-align: right;
     padding: 1em 5em 1em 1em;
     box-sizing: border-box;
+}
+.dlg_support_level>div{
+    padding: 1em;
+
 }
