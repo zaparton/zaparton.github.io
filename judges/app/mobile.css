@@ -59,7 +59,7 @@ input[type="button"]{
 #dv_header_title {
     padding: 10px 80px 10px 50px;
     font-size: 1.5em;
-    background-image: url(../img/cramim96.png);
+    background-image: url(../img/judge.svg);
     background-repeat: no-repeat;
     background-position: right 5px top 5px;
     background-size: contain;
@@ -151,7 +151,7 @@ input[type="button"]{
 }
 
 .tab_title_inactive{
-    color:silver;
+    color:white;
     font-weight: initial;
 }
 
@@ -1014,3 +1014,10 @@ input[type="button"]{
     padding: 2em 1em;
     overflow: auto;
 }
+
+.tab_disabled{
+   color: #F0F0F080;
+}
+
+.page[permision="VIEW"] .pic_toolbox{display: none;}
+.page[permision="NONE"]{display: none !important;}
