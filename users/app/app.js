@@ -121,9 +121,8 @@ var app = {
         srv_url: 'https://script.google.com/macros/s/AKfycbwMGsMJED0mc1xaJResbTz__WyC11EC2kAJbkZ0qaMbUu4SFZhpOVPDSLojk_YNrmXDtw/exec',
         s3_bucket_url: 'https://zaparton.s3.eu-west-1.amazonaws.com',
         s3_bucket_cred: {
-            accessKeyId: "AKIA56O6T2RPL67SHZXP",
-            secretAccessKey: "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",
-            //  sessionToken: "SESSION_TOKEN", // optional you can remove if you don't want pass
+            accessKeyId: "AKIA56O6T2RPG6PPCAFF",
+            secretAccessKey: "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",
             region: 'eu-west-1'
         },
         server_load_response: null,
