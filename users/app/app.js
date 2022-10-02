@@ -89,6 +89,15 @@ var js = {
             if (s.trim() == '') return null;
         }
         return s;
+    },
+    date_html_input_format:(date)=>{
+        const dt = date || new Date();
+        var m = dt.getMonth() + 1;
+        var d = dt.getDate();
+        var y = dt.getFullYear();
+        if(m < 10) m = '0' + m.toString();
+        if(d < 10) d = '0' + d.toString();
+        return `${y}-${m}-${d}`;
     }
 }
 
@@ -539,6 +548,7 @@ var app = {
         $("#eb_profile_name").val(app.dat.user.name);
         $("#eb_profile_email").val(app.dat.user.email);
         $("#eb_profile_birth").val(app.dat.user.birth);
+        $("#eb_profile_birth").attr('max', js.date_html_input_format());        
         $("#sl_gender").val(app.dat.user.gender);
         $("#eb_profile_phone").val(app.dat.user.phone);
         $("#sl_level").val(app.dat.user.level);
