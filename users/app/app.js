@@ -241,15 +241,16 @@ var app = {
         app.dat.uploads_in_progress[slot_idx].abort();
     },
     pic_mngr : {
-        on_error_level_1:(file_inf, error)=>{
-            $(`#pic_boxes_wrapper .pic_band[slot_idx=${file_inf.slot}] .frm_section_row.pic_contest_status`).hide();
-            $(`#pic_boxes_wrapper .pic_band[slot_idx=${file_inf.slot}] .frm_section_row.pic_actions`).hide();
-            $(`#pic_boxes_wrapper .pic_band[slot_idx=${file_inf.slot}] .frm_section_row[pic_status]`).hide();
-            $(`#pic_boxes_wrapper .pic_band[slot_idx=${file_inf.slot}] .pic_error`).show();
-            app.disable_pic_mask(file_inf.slot);
-            console.log(`on_error_level_1: slot:${file_inf.slot}, code:${error.code}, desc:${error.desc}`);
+        on_error_level_1:(slot, error, msg)=>{
+            $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .frm_section_row.pic_contest_status`).hide();
+            $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .frm_section_row.pic_actions`).hide();
+            $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .frm_section_row[pic_status]`).hide();
+            $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .pic_error`).html(msg || 'תקלה בביצוע הפעולה :(');
+            $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .pic_error`).show();
+            app.disable_pic_mask(slot);
+            console.log(`on_error_level_1: slot:${slot}, code:${error?.code}, desc:${error?.desc}`);
         },
-        on_error_level_2:(file_inf, text)=>{
+        on_error_level_2:(slot, text)=>{
             console.log(`on_error_level_2: slot:${slot}, text:${text}`);
         },
         restore_pic_click:(e)=>{
@@ -266,11 +267,12 @@ var app = {
                 slot: file_inf.slot
             };
             const callback = {
-                on_error_response: (error)=>{ app.pic_mngr.on_error_level_1(file_inf, error); },
-                on_connect_error: (error)=>{ app.pic_mngr.on_error_level_1(file_inf, error); },
-                on_js_error: (error)=>{ app.pic_mngr.on_error_level_1(file_inf, error); },
+                on_error_response: (error)=>{ app.pic_mngr.on_error_level_1(file_inf.slot, error); },
+                on_connect_error: (error)=>{ app.pic_mngr.on_error_level_1(file_inf.slot, error); },
+                on_js_error: (error)=>{ app.pic_mngr.on_error_level_1(file_inf.slot, error); },
                 on_success : (response)=>{
                     app.update_upload_status(file_inf.$band, 'מוחק תמונה...', app.update_status_stages.DELETE, 2, 100);
+                    app.dat.pics[file_inf.slot-1] = null;
                     next();
                 }
             }
@@ -285,9 +287,9 @@ var app = {
                 slot: file_inf.slot
             };
             const callback = {
-                on_error_response: (error)=>{ app.pic_mngr.on_error_level_1(file_inf, error); },
-                on_connect_error: (error)=>{ app.pic_mngr.on_error_level_1(file_inf, error); },
-                on_js_error: (error)=>{ app.pic_mngr.on_error_level_1(file_inf, error); },
+                on_error_response: (error)=>{ app.pic_mngr.on_error_level_1(file_inf.slot, error); },
+                on_connect_error: (error)=>{ app.pic_mngr.on_error_level_1(file_inf.slot, error); },
+                on_js_error: (error)=>{ app.pic_mngr.on_error_level_1(file_inf.slot, error); },
                 on_success : (response)=>{
                     app.update_upload_status(file_inf.$band, 'בודק הרשאות...', app.update_status_stages.UPLOAD, 2, 100);
                     next();
@@ -322,7 +324,7 @@ var app = {
             };
             app.update_upload_status(file_inf.$band, 'מעלה תמונה', app.update_status_stages.UPLOAD, 4, 0);
             app.dat.uploads_in_progress[file_inf.slot] = bucket.upload(data, function(err, data){
-                if (err) app.pic_mngr.on_error_level_1(file_inf, err)
+                if (err) app.pic_mngr.on_error_level_1(file_inf.slot, err)
                 else next()
             }).on('httpUploadProgress', (progress)=> {
                 app.update_upload_status(file_inf.$band, 'מעלה תמונה', app.update_status_stages.UPLOAD, 4, Math.round(progress.loaded / progress.total * 100));
@@ -340,9 +342,9 @@ var app = {
                 exif:JSON.stringify(file_inf.exif)
             };
             const callback = {
-                on_error_response: (error)=>{ app.pic_mngr.on_error_level_1(file_inf, error); },
-                on_connect_error: (error)=>{ app.pic_mngr.on_error_level_1(file_inf, error); },
-                on_js_error: (error)=>{ app.pic_mngr.on_error_level_1(sfile_inf, error); },
+                on_error_response: (error)=>{ app.pic_mngr.on_error_level_1(file_inf.slot, error); },
+                on_connect_error: (error)=>{ app.pic_mngr.on_error_level_1(file_inf.slot, error); },
+                on_js_error: (error)=>{ app.pic_mngr.on_error_level_1(file_inf.slot, error); },
                 on_success : (response)=>{
                     app.update_upload_status(file_inf.$band, 'שומר שינויים', app.update_status_stages.UPLOAD, 5, 100);
                     next(response.new_pic);
@@ -446,7 +448,10 @@ var app = {
     disable_pic_mask(slot){
         const $pic_box_mask = $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .pic_box_mask`);
         $pic_box_mask.removeClass('pic_box_mask_link');
-        $pic_box_mask.unbind('click');
+        $pic_box_mask.off('click').click((ev)=>{
+            $pic_box_mask.unbind('click');
+            app.pic_mngr.restore_pic_click(ev);
+        });
         $pic_box_mask.addClass('mask_disabled');
     },
     show_pic_mask(slot, fname, as_link){
@@ -464,7 +469,7 @@ var app = {
         $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}]`).html($("template#pic-band").html());
         $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .pic_box_title`).html(`תמונה מס' ${slot}`)
         app.init_drop_zone($(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .drop_zone`)[0]);
-        $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .pic_error`).click(app.pic_mngr.restore_pic_click);
+        $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .pic_error`).off("click").click(app.pic_mngr.restore_pic_click);
         app.set_pic_status_idle_button(slot, 'idle');
         if (file_item) {
             const fname = js.extract_file_name(file_item[2]);
@@ -942,7 +947,6 @@ var app = {
                     // img.src = src;
                     // img.alt = file.name
                     tmp_img = new Image();
-                    tmp_img.src = src;
                     tmp_img.addEventListener("load", function () {
                         app.show_pic_mask(slot_idx);
                         EXIF.getData(tmp_img, function() {
@@ -983,6 +987,12 @@ var app = {
                             });
                         });
                     });
+                    tmp_img.addEventListener("error", function () {
+                        app.show_pic_mask(slot_idx);
+                        $thumb_loader.fadeOut();
+                        app.pic_mngr.on_error_level_1(slot_idx, null, 'קובץ בפורמט לא ידוע');
+                    });
+                    tmp_img.src = src;
                 }
 
             });
