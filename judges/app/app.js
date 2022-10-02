@@ -74,6 +74,11 @@ var js = {
         var len = len || 5;
         for(var i=0; i < len; i++) text += set.charAt(Math.floor(Math.random() * set.length));
         return text;
+    },
+    value_if_empty:(value, if_empty)=>{
+        if (!value) return if_empty;
+        if (('' + value).trim() == '') return if_empty;
+        return value;
     }
 }
 
@@ -183,11 +188,22 @@ var app = {
         app.dat.user = {
             uid: response.user[0],
             otp: response.user[1],
-            name: response.user[2]
+            name: response.user[2],
+            permision: {
+                screening: js.value_if_empty(response.user[3], 'NONE'),
+                quality_screening: js.value_if_empty(response.user[4], 'NONE'),
+                scoring: js.value_if_empty(response.user[5], 'NONE')
+            }
         }
         window.localStorage.setObj("zaparton-judge", app.dat.user);
         $("#user_box_head_name").html(app.dat.user.name);
         $("#user_box_head_id").html(app.dat.user.uid);
+        if (app.dat.user.permision.screening == 'NONE') $("#tab_screening").addClass("tab_disabled");
+        if (app.dat.user.permision.quality_screening == 'NONE') $("#tab_quality_screening").addClass("tab_disabled");
+        if (app.dat.user.permision.scoring == 'NONE') $("#tab_scoring").addClass("tab_disabled");
+        $("#page_screening").attr("permision", app.dat.user.permision.screening);
+        $("#page_quality_screening").attr("permision", app.dat.user.permision.quality_screening);
+        $("#page_scoring").attr("permision", app.dat.user.permision.scoring);
     },
     build_campaign:(response)=>{
         // app.dat.campaign = window.localStorage.getObj("zaparton-judge-campaign") || response.campaign_list[0];
@@ -264,7 +280,7 @@ var app = {
         app.post(post_data,{
             on_success :(response)=>{$pic_wrapper.remove();},
             on_error_response: (error)=>{
-                // app.reshow_error_pic($pic_wrapper, '.pic_srv_error')
+                app.reshow_error_pic($pic_wrapper, '.pic_srv_error')
             },
             on_connect_error:(error)=>{app.reshow_error_pic($pic_wrapper, '.pic_con_error')},
             on_js_error:(error)=>{app.reshow_error_pic($pic_wrapper, '.pic_js_error')}
