@@ -3,11 +3,13 @@ app = $.extend(app, {
         current_page:null,
         scroll_inf: {}
     },
-    change_tab:(id)=>{
+    change_tab:(id, dont_change_page)=>{
+        if ($(`#tab_${id}`).hasClass("tab_disabled")) return;
         $("#tab_indicator").css("width", $(`#tab_${id}`).outerWidth());
         $("#tab_indicator").css("left", $(`#tab_${id}`).position().left);
         $(".tab_title").addClass("tab_title_inactive");
         $(`.tab_title[page_id="${id}"]`).removeClass("tab_title_inactive");
+        if (!dont_change_page) app.change_page(id);
     },
     change_page:(id)=>{
         if (!app.nav.scroll_inf[id]) app.nav.scroll_inf[id] = {};
@@ -22,7 +24,6 @@ app = $.extend(app, {
         app.nav.current_page = id;
     },
     on_page_changed:(old_id, new_id)=>{
-        $("#ico_filter").toggle(new_id == "activity");
         if ($(window).scrollTop()<=80) {
             $("#dv_header").removeClass("head_shrink");
             app.nav.scroll_inf[new_id] = {};
@@ -33,7 +34,7 @@ app = $.extend(app, {
             $("#user_hours").removeClass("ani_pulse");
         });
         $("#user_hours").addClass("ani_pulse");
-        app.help_message.show_signup();
+        // app.help_message.show_signup();
     },
     changed:()=>{
         return false;
@@ -65,14 +66,6 @@ app = $.extend(app, {
         window.onbeforeunload = function(){
             if (app.changed() && $("#dv_login").is(":hidden"))  return 'אזהרה! השינויים לא נשמרו.';
         };
-        $("#bt_user_abort").click(()=>{
-            app.abort();
-        });
-        $("#bt_user_save").click(()=>{
-            app.change_tab("screening");
-            app.change_page("screening");
-            app.save();
-        });
         $("#ico_menu").click(()=>{
             $("#dv_menu_mask").show();
         });
@@ -100,42 +93,14 @@ app = $.extend(app, {
         $("#tab_screening, #tab_quality_screening, #tab_scoring").click((el)=>{
             const id = $(el.target).attr("page_id");
             app.change_tab(id);
-            app.change_page(id);
         })
-        $("#ico_filter").click((el)=>{
-            $("#dv_header").hide();
-            $("#user_box_head_wrapper").hide();
-            $("#dv_filter_toolbox").show();
-            app.change_page("filter");
-        });
+
         $("#ico_up").click(()=>{
             $(window)[0].scrollTo({top:0, behavior: 'smooth'});
         });
-        $(".filter_box_item").click((ev)=>{
-            if (ev.target.tagName.toLowerCase() == "input") return;
-            $(ev.target).closest(".filter_box_item").find("input").click();
-        });
-        // $("#filter_box_wrapper input[type='checkbox']").change(app.filter);
-        $("#bt_apply_filter").click(()=>{
-            $("#dv_header").show();
-            $("#user_box_head_wrapper").show();
-            $("#dv_filter_toolbox").hide();
-            app.filter();
-            app.change_page("scoring");
-            app.change_tab("scoring");
-            $("#ico_filter").toggleClass("filter_is_on", $(".filter_box_item input[type='checkbox']:checked").length>0);
-            app.nav.scroll_inf["activuty"] = {};
-            $("#dv_header").removeClass("head_shrink");
-            $(window)[0].scrollTo({top:0});
-        });
-        $("#bt_clear_filter").click(()=>{
-            $("#filter_box_wrapper input[type='checkbox']").prop("checked", false);
-            app.set_filter_button_mode();
-            $("#bt_apply_filter").click();
-        });
         $(window).scroll(app.on_scroll);
         $(window).on("orientationchange", event => {
-            setTimeout(()=>{app.change_tab(app.nav.current_page)}, 100);
+            setTimeout(()=>{app.change_tab(app.nav.current_page, true)}, 100);
         });
         /* disabled sep 1 2022
         $("#login_register_link").click(()=>{
@@ -143,8 +108,13 @@ app = $.extend(app, {
         });
         */
     },
-    set_filter_button_mode: ()=> $("#ico_filter").toggleClass("filter_is_on", $(".filter_box_item input[type='checkbox']:checked").length>0),
-    on_after_rebuild: ()=> app.set_filter_button_mode(),
+    on_after_rebuild: ()=> {
+        $(document).ready(()=>{
+            if (!$(`#tab_screening`).hasClass("tab_disabled")) app.change_tab("screening");
+            else if (!$(`#tab_quality_screening`).hasClass("tab_disabled")) app.change_tab("quality_screening");
+            else if (!$(`#tab_scoring`).hasClass("tab_disabled")) app.change_tab("quality_scoring");
+        });
+    },
     on_scroll:()=>{
         const st = $(window).scrollTop();
         app.head_shrink(st);
@@ -176,14 +146,14 @@ app = $.extend(app, {
         app.post(post_data,{
             on_success :(response)=>{
                 $("#dv_header").show();
-                $(document).ready(()=>{
-                    app.change_tab("screening");
-                    app.change_page("screening");
-                });
+                // $(document).ready(()=>{
+                //     app.change_tab("screening");
+                //     app.change_page("screening");
+                // });
                 app.rebuild(response);
                 $("#user_box_head_wrapper").slideDown();
                 $("#dv_login").fadeOut();
-                app.help_message.show_welcome();
+                // app.help_message.show_welcome();
             }, 
             on_error_response: (error)=>{
                 if (error.code == 4) {
@@ -222,7 +192,6 @@ app = $.extend(app, {
         $("#dv_header").hide();
         $("#dv_screen_message").hide();
         $("#user_box_head_wrapper").hide();
-        $("#dv_filter_toolbox").hide();
         app.init_buttons();
         app.init_user();
         if (app.dat.user) {
