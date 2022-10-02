@@ -61,11 +61,9 @@ input[type="button"]{
     font-size: 1.5em;
     background-image: url(../img/judge.svg);
     background-repeat: no-repeat;
-    background-position: right 5px top 5px;
-    background-size: contain;
+    background-position: right 0.5em top 0.5em;
+    background-size: 3.5em;
     font-weight: 500;
-    /* transition: 200ms;
-    max-height: 500px; */
 }
 
 .head_shrink #dv_header_title {
