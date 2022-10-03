@@ -770,7 +770,7 @@ input[type="button"]{
 }
 
 .help_paragraph, .help_nagging {
-    text-align: right;
+    text-align: center;
     padding-top: 1em;
 }
 
