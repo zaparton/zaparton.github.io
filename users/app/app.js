@@ -163,6 +163,7 @@ var app = {
                 })
             });
         }
+        return array;
     },
     post: (postdata, callback, no_animation)=>{
         please_wait = callback.please_wait || app.please_wait;
@@ -495,6 +496,17 @@ var app = {
         for (let i = 1; i <= 3; i++) {app.build_pic(i);};
         $.each(app.dat.pics, (i, item)=>{if (item) app.build_pic(item[1], item)});
     },
+    build_news:(response)=>{
+        app.dat.news = app.clean_google_sheet_array(response.news, true).reverse();
+        var html = '';
+        $.each(app.dat.news, (i, item)=>{
+            var txt = js.r(item[1], '\n', '<br>');
+            var dt = item[0];
+            html += `<div class="frm_section"><div class="frm_section_box frm_info_box"><div class="frm_info_box_content">${txt}</div><div class="frm_info_box_date">${dt}</div></div></div>`;
+        });
+        $("#log_wrapper").html(html);
+
+    },
     build_user_info:(response)=>{
         app.dat.user = {
             uid: response.user[0],
@@ -572,6 +584,7 @@ var app = {
         app.dat.server_load_response = JSON.parse(JSON.stringify(response));
         app.build_user_info(response);
         app.build_pics(response);
+        app.build_news(response);
         app.scroll_home();
         app.on_after_rebuild?.call();
     },
