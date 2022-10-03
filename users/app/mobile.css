@@ -1454,3 +1454,33 @@ input[type="button"]{
     color: #757575;
 }
 
+#log_wrapper .frm_info_box {
+    background-image: url(../img/logo.png);
+    background-size: 6em;
+    display: flex;
+    padding: 1em;
+    background-position: right 0.5em top 0.5em;
+    flex-direction: column;
+}
+
+.frm_info_box_date {
+    font-weight: 500;
+    font-size: 1.5em;
+    color: darkslategrey;
+    padding: 1.8em 4em 0.2em 1em;
+    border-bottom: 1px #e0e0e0 solid;
+    text-align: left;
+}
+
+.frm_info_box_content {
+    flex-grow: 1;
+    padding: 1em;
+}
+
+#log_wrapper .frm_section {
+    border-top: 1px black dotted;
+}
+
+#log_wrapper .frm_section:first-child {
+    border-top: none;
+}
