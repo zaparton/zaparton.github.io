@@ -1004,6 +1004,11 @@ var app = {
             });
         }
         const load_file_after_warning = (file)=>{
+            const sig_dont_nag = window.localStorage.getObj("zaparton-stop-sig-nagging");
+            if (sig_dont_nag) {
+                load_file(file);
+                return;
+            }
             // moved to server side !!
             // let today = new Date(); 
             // let yesterday = new Date();
@@ -1019,12 +1024,15 @@ var app = {
             swal({
                 title: 'לידיעתך',
                 html: 
-                    'יש להמנע מהוספת חתימת צלם על התמונה!' + '<br>' +
-                    'תמונה הנושאת חתימה לא תתקבל לתחרות!' + '<br><br>' +
-                    'האם להמשיך?',
+                    '<div>יש להמנע מהוספת חתימת צלם על התמונה.</div>' +
+                    '<div>תמונה הנושאת חתימה לא תתקבל לתחרות!</div>' +
+                    '<br>' +
+                    '<div>האם להמשיך?</div>' +
+                    '<div class="help_nagging"><input id="cb_sig_nagging" type="checkbox"/><label for="cb_sig_nagging">הבנתי, אין צורך להציג הודעה זו שוב.</label></div>',
                 showCancelButton: true, confirmButtonColor: '#3085d6', cancelButtonColor: '#d33', confirmButtonText: 'כן', cancelButtonText: 'לא',
                 // onAfterClose:()=>{if (swal.ok) do_logout();}
             }).then(function(result){
+                if ($('#cb_sig_nagging').is(":checked")) window.localStorage.setObj("zaparton-stop-sig-nagging", true);
                 if (result.dismiss) return;
                 load_file(file);
             });
