@@ -1099,9 +1099,11 @@ body{
 .frm_pics{
 }
 
+
 .frm_pics .frm_section{
     margin: 4em;
 }
+
 .upload_status{
     flex-grow: 1;
 }
@@ -1260,4 +1262,31 @@ body{
 .dlg_support_level>div{
     padding: 1em;
 
+}
+
+#log_wrapper .frm_section{
+    margin: 4em;
+}
+
+#log_wrapper{
+    padding-top: 1em;
+}
+
+#log_wrapper .frm_info_box {
+    background-image: url(../img/logo.png);
+    background-size: 6em;
+    display: flex;
+    padding: 2em 8em 2em 2em;
+    background-position: right 0.5em top 0.5em;
+}
+
+.frm_info_box_date {
+    font-weight: 500;
+    font-size: 1.5em;
+    color: darkslategrey;
+    margin-top: -10px;
+}
+
+.frm_info_box_content {
+    flex-grow: 1;
 }
