@@ -267,7 +267,10 @@ var app = {
                 slot: file_inf.slot
             };
             const callback = {
-                on_error_response: (error)=>{ app.pic_mngr.on_error_level_1(file_inf.slot, error); },
+                on_error_response: (error)=>{ 
+                    if (error?.code == 7 || error?.code == 8) app.pic_mngr.on_error_level_1(file_inf.slot, error, error.desc); 
+                    else app.pic_mngr.on_error_level_1(file_inf.slot, error); 
+                },
                 on_connect_error: (error)=>{ app.pic_mngr.on_error_level_1(file_inf.slot, error); },
                 on_js_error: (error)=>{ app.pic_mngr.on_error_level_1(file_inf.slot, error); },
                 on_success : (response)=>{
@@ -287,7 +290,10 @@ var app = {
                 slot: file_inf.slot
             };
             const callback = {
-                on_error_response: (error)=>{ app.pic_mngr.on_error_level_1(file_inf.slot, error); },
+                on_error_response: (error)=>{ 
+                    if (error?.code == 7 || error?.code == 8) app.pic_mngr.on_error_level_1(file_inf.slot, error, error.desc); 
+                    else app.pic_mngr.on_error_level_1(file_inf.slot, error); 
+                },
                 on_connect_error: (error)=>{ app.pic_mngr.on_error_level_1(file_inf.slot, error); },
                 on_js_error: (error)=>{ app.pic_mngr.on_error_level_1(file_inf.slot, error); },
                 on_success : (response)=>{
@@ -998,18 +1004,18 @@ var app = {
             });
         }
         const load_file_after_warning = (file)=>{
-            let today = new Date();
-            let yesterday = new Date();
-            yesterday.setDate(yesterday.getDate() -1);
-
-            if (app.dat.campaign.start_date && today < new Date(app.dat.campaign.start_date)) {
-                app.pop_err('התחרות עדיין לא התחילה');
-                return;
-            }
-            if (app.dat.campaign.end_date && yesterday > new Date(app.dat.campaign.end_date)) {
-                app.pop_err('התחרות הסתיימה');
-                return;
-            }
+            // moved to server side !!
+            // let today = new Date(); 
+            // let yesterday = new Date();
+            // yesterday.setDate(yesterday.getDate() -1);
+            // if (app.dat.campaign.start_date && today < new Date(app.dat.campaign.start_date)) {
+            //     app.pop_err('התחרות עדיין לא התחילה');
+            //     return;
+            // }
+            // if (app.dat.campaign.end_date && yesterday > new Date(app.dat.campaign.end_date)) {
+            //     app.pop_err('התחרות הסתיימה');
+            //     return;
+            // }
             swal({
                 title: 'לידיעתך',
                 html: 
