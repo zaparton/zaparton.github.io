@@ -114,6 +114,9 @@ app = $.extend(app, {
         });
     },
     set_filter_button_mode: ()=> $("#ico_filter").toggleClass("filter_is_on", $(".filter_box_item input[type='checkbox']:checked").length>0),
+    get_news_section_html:(txt,dt)=>{
+        return `<div class="frm_section"><div class="frm_section_box frm_info_box"><div class="frm_info_box_date">${dt}</div><div class="frm_info_box_content">${txt}</div></div></div>`;
+    },
     on_after_rebuild: ()=> {
         $("#campaign_title").html((app.dat.campaign)?app.dat.campaign.sub_title:'תחרות צילום - הרשמה לתחרות');
         $(".drop_zone p").html("לחץ להעלאת תמונה");
