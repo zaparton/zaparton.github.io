@@ -593,12 +593,22 @@ var app = {
     scroll_home:()=>{
         $("#main_box")[0].scrollTo({top: 0, behavior: 'smooth'});
     },
-    clear:()=>{
+    clear_data:()=>{
+        app.dat.user = null;
+        app.dat.pics = {
+            to_screen:null,
+            to_quality_screen:null,
+            to_score:null
+        };
+        app.dat.campaign = null;
+    },
+    clear_view:()=>{
         $("#user_box_head_name").html('');
         $("#user_box_head_id").html('');
-        app.dat.user = null;
-        app.dat.pics = null;
-        app.dat.campaign = null;
+    },
+    clear:()=>{
+        app.clear_data();
+        app.clear_view();
     },
     clear_storage:()=>{
         window.localStorage.setObj("zaparton-user", null);
