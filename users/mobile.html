@@ -128,40 +128,42 @@
     <div id="page_profile" class="page">
         <div id="profile_wrapper" >
             <div class="frm_section">
-                <div class="frm_section_title" id="validation_note">⚠️ בעיות במילוי הטופס סומנו באדום</div>
-                <div class="frm_section_title">פרטים אישיים:</div>
-                <div class="frm_section_box">
-                    <div class="frm_section_row">
-                        <div class="frm_section_row_title">שם מלא:<span class="frm_mandatory"></span></div>
-                        <div class="frm_section_row_content">
-                            <input type="text" id="eb_profile_name">
-                            <div class="frm_error_msg"></div>
+                <form>
+                    <div class="frm_section_title" id="validation_note">⚠️ בעיות במילוי הטופס סומנו באדום</div>
+                    <div class="frm_section_title">פרטים אישיים:</div>
+                    <div class="frm_section_box">
+                        <div class="frm_section_row">
+                            <div class="frm_section_row_title">שם מלא:<span class="frm_mandatory"></span></div>
+                            <div class="frm_section_row_content">
+                                <input type="text" id="eb_profile_name">
+                                <div class="frm_error_msg"></div>
+                            </div>
+                        </div>
+                        <div class="frm_section_row">
+                            <div class="frm_section_row_title">כתובת דוא"ל:<span class="frm_mandatory"></span></div>
+                            <div class="frm_section_row_content"><input type="text" id="eb_profile_email" value="" disabled><div class="frm_error_msg"></div></div>
+                        </div>
+                        <div class="frm_section_row">
+                            <div class="frm_section_row_title">שנת לידה:<span class="frm_mandatory"></span></div>
+                            <div class="frm_section_row_content"><input type="number" min="1902" mx="2022" id="eb_profile_birth"><div class="frm_error_msg"></div></div>
+                        </div>
+                        <div class="frm_section_row">
+                            <div class="frm_section_row_title">מין:</div>
+                            <div class="frm_section_row_content">
+                                <select name="sl_gender" id="sl_gender">
+                                    <option value="" selected></option>
+                                    <option value="M">זכר</option>
+                                    <option value="F">נקבה</option>
+                                </select>
+                                <div class="frm_error_msg"></div>
+                            </div>
+                        </div>
+                        <div class="frm_section_row">
+                            <div class="frm_section_row_title">טלפון:<span class="frm_mandatory"></span></div>
+                            <div class="frm_section_row_content"><input type="phone" id="eb_profile_phone"><div class="frm_error_msg"></div></div>
                         </div>
                     </div>
-                    <div class="frm_section_row">
-                        <div class="frm_section_row_title">כתובת דוא"ל:<span class="frm_mandatory"></span></div>
-                        <div class="frm_section_row_content"><input type="text" id="eb_profile_email" value="" disabled><div class="frm_error_msg"></div></div>
-                    </div>
-                    <div class="frm_section_row">
-                        <div class="frm_section_row_title">תאריך לידה:<span class="frm_mandatory"></span></div>
-                        <div class="frm_section_row_content"><input type="date" id="eb_profile_birth"><div class="frm_error_msg"></div></div>
-                    </div>
-                    <div class="frm_section_row">
-                        <div class="frm_section_row_title">מין:</div>
-                        <div class="frm_section_row_content">
-                            <select name="sl_gender" id="sl_gender">
-                                <option value="" selected></option>
-                                <option value="M">זכר</option>
-                                <option value="F">נקבה</option>
-                            </select>
-                            <div class="frm_error_msg"></div>
-                        </div>
-                    </div>
-                    <div class="frm_section_row">
-                        <div class="frm_section_row_title">טלפון:<span class="frm_mandatory"></span></div>
-                        <div class="frm_section_row_content"><input type="phone" id="eb_profile_phone"><div class="frm_error_msg"></div></div>
-                    </div>
-                </div>
+                </form>
             </div>
             <div class="frm_section">
                 <div class="frm_section_title">הרשמה:</div>
