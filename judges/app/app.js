@@ -259,7 +259,6 @@ var app = {
         app.post(post_data,{
             on_success :(response)=>{
                 console.log(response);
-                // $pic_wrapper.remove();
                 app.build_pics(response);
             },
             on_error_response: (error)=>{app.reshow_error_pic($pic_wrapper, '.pic_srv_error')},
@@ -272,13 +271,17 @@ var app = {
             act_id: "scoring_save",
             uid: app.dat.user.uid,
             otp: app.dat.user.otp,
+            campaign_sub_id: app.dat.campaign.sub_id,
             pid: $pic_wrapper.attr('pid'),
             file_name: $pic_wrapper.attr('file_name'),
             score: $pic_wrapper.attr('score')
         };
         $pic_wrapper.slideUp();
         app.post(post_data,{
-            on_success :(response)=>{$pic_wrapper.remove();},
+            on_success :(response)=>{
+                console.log(response);
+                app.build_pics(response);
+            },
             on_error_response: (error)=>{
                 app.reshow_error_pic($pic_wrapper, '.pic_srv_error')
             },
@@ -292,9 +295,24 @@ var app = {
         app.dat.pics.to_screen = [];
         app.dat.pics.to_quality_screen = [];
         app.dat.pics.to_score = [];
-        // $("#page_screening").html("");
-        // $("#page_quality_screening").html("");
-        // $("#page_scorring").html("");
+        const push_pic = (target, pic_arr)=>{
+            const pic = {
+                file_name:pic_arr[2],
+                pid:pic_arr[9],
+                status: pic_arr[5],
+                level: pic_arr[10],
+                exif: pic_arr[11]
+            }
+            const $pic_exists = $(`.pic_wrapper[pid="${pic.pid}"]`);
+            const diff_status = ($pic_exists.length>0 && $pic_exists.attr("status") != pic.status);
+            if (diff_status) $pic_exists.remove();
+            if ($pic_exists.length == 0 || diff_status) target.push(pic);
+        }
+        $.each(response.pics.for_screening, (i, pic_arr)=>{push_pic(app.dat.pics.to_screen, pic_arr)});
+        $.each(response.pics.for_quality_screening, (i, pic_arr)=>{push_pic(app.dat.pics.to_quality_screen, pic_arr)});
+        $.each(response.pics.for_scoring, (i, pic_arr)=>{push_pic(app.dat.pics.to_score, pic_arr)});
+
+/*
         var pics = response.pics.slice();
         $.each(pics, (i, pic_arr)=>{
             const pic = {
@@ -313,6 +331,7 @@ var app = {
                 else if (pic.status == 4) { app.dat.pics.to_score.push(pic); }
             }
         });
+*/        
         var html = ''
         $.each(app.dat.pics.to_screen, (i, pic)=>{ 
             $("#json").html('');
@@ -432,23 +451,9 @@ var app = {
         $("#frm_login_2").hide();
         $("#dv_login").fadeIn();
     },
-    logout:(force)=>{
-        const do_logout = ()=>{
-            app.clear();
-            app.clear_storage();
-            app.show_login_page();
-        };
-        swal.ok = false;
-        if (force || !app.changed()) do_logout();
-        else swal({
-            title: 'יציאה',
-            html: "רגע... רגע...<br>לצאת ולאבד את כל השינויים?",
-            showCancelButton: true, confirmButtonColor: '#3085d6', cancelButtonColor: '#d33', confirmButtonText: 'כן', cancelButtonText: 'לא',
-            onAfterClose:()=>{if (swal.ok) do_logout();}
-        }).then(function(result){
-            if (result.dismiss) return;
-            swal.ok = true;
-        });
+    logout:()=>{
+        app.clear_storage();
+        window.location.reload();
     },
     help_message_txt:{
         welcome: 
