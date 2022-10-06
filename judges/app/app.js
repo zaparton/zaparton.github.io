@@ -812,11 +812,10 @@ var app = {
     },
     start: ()=>{
         if (js.is_mobile()) {
-            app.show_screen_message("הדף עדיין לא מתאים למכשירים ניידים");
-            // if (window.location.href.toLowerCase().indexOf("mobile.html")<0) {
-            //     const query = window.location.href.split('?')[1]||'';
-            //     window.location.href = "mobile.html" + ((query == '') ? '' : "?" + query);
-            // }
+            if (window.location.href.toLowerCase().indexOf("mobile.html")<0) {
+                const query = window.location.href.split('?')[1]||'';
+                window.location.href = "mobile.html" + ((query == '') ? '' : "?" + query);
+            }
         } else {
             app.init();
         }
