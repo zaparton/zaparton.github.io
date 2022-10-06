@@ -627,7 +627,7 @@ var app = {
         const do_logout = ()=>{
             app.clear();
             app.clear_storage();
-            app.show_login_page();
+            window.location.reload();
         };
         swal.ok = false;
         if (force || !app.changed()) do_logout();
