@@ -489,6 +489,7 @@ var app = {
             img.fadeIn();
             app.set_pic_status(file_item[1], file_item[5]);
             app.show_pic_mask(file_item[1], file_item[2], true);
+            if (file_item[5] != '0') $("#sl_level").prop("disabled", true);
         }
     },
     build_pics:(response)=>{
