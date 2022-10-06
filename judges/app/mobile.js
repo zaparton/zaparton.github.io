@@ -112,7 +112,7 @@ app = $.extend(app, {
         $(document).ready(()=>{
             if (!$(`#tab_screening`).hasClass("tab_disabled")) app.change_tab("screening");
             else if (!$(`#tab_quality_screening`).hasClass("tab_disabled")) app.change_tab("quality_screening");
-            else if (!$(`#tab_scoring`).hasClass("tab_disabled")) app.change_tab("quality_scoring");
+            else if (!$(`#tab_scoring`).hasClass("tab_disabled")) app.change_tab("scoring");
         });
     },
     on_scroll:()=>{
