@@ -5,7 +5,8 @@ body {
     background-image: url(../img/bg.jpg);
     background-attachment: fixed;
     background-position: center center;
-    background-size: cover; }
+    background-size: cover; 
+}
 
 .pic,
 .tab_title,
@@ -15,5 +16,5 @@ input[type="button"]{
 }
 
 #dv_header_title {
-    background-size: 3em;
+    padding: 1em 5em 1em 3em;
 }

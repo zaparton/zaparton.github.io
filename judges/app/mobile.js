@@ -102,6 +102,9 @@ app = $.extend(app, {
         $(window).on("orientationchange", event => {
             setTimeout(()=>{app.change_tab(app.nav.current_page, true)}, 100);
         });
+        window.addEventListener("resize", () => {
+            setTimeout(()=>{app.change_tab(app.nav.current_page, true)}, 100);
+        });
         /* disabled sep 1 2022
         $("#login_register_link").click(()=>{
             app.set_login_mode((app.dat.login_mode == "LOGIN")?"REGISTER":"LOGIN");
