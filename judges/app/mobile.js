@@ -206,11 +206,11 @@ app = $.extend(app, {
     },
     start_mobile: ()=>{
         if (!js.is_mobile()) {
-            app.show_screen_message("דף זה מיועד למכשירים ניידים");
-            // if (window.location.href.toLowerCase().indexOf("index.html")<0) {
-            //     const query = window.location.href.split('?')[1]||'';
-            //     window.location.href = "index.html" + ((query == '') ? '' : "?" + query);
-            // }
+            // app.show_screen_message("דף זה מיועד למכשירים ניידים");
+            if (window.location.href.toLowerCase().indexOf("index.html")<0) {
+                const query = window.location.href.split('?')[1]||'';
+                window.location.href = "index.html" + ((query == '') ? '' : "?" + query);
+            }
         } else {
             app.init();
         }
