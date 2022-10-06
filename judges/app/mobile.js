@@ -47,7 +47,7 @@ app = $.extend(app, {
     },
     head_shrink:(st)=>{
         const scroll_inf = app.nav.scroll_inf[app.nav.current_page];
-        if (Math.abs(st-(scroll_inf.scroll_switch||0))>80) {
+        if (Math.abs(st-(scroll_inf.scroll_switch||0))>300) {
             if (st > scroll_inf.last_scroll_top) $("#dv_header").addClass("head_shrink");
             if (st < scroll_inf.last_scroll_top) $("#dv_header").removeClass("head_shrink");
             scroll_inf.scroll_switch = st;
