@@ -119,12 +119,6 @@ const APP_GLOBAL = {
 var app = {
     dat:{
         srv_url: 'https://script.google.com/macros/s/AKfycbwMGsMJED0mc1xaJResbTz__WyC11EC2kAJbkZ0qaMbUu4SFZhpOVPDSLojk_YNrmXDtw/exec',
-        s3_bucket_url: 'https://zaparton.s3.eu-west-1.amazonaws.com',
-        s3_bucket_cred: {
-            accessKeyId: "AKIA56O6T2RPG6PPCAFF",
-            secretAccessKey: "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",
-            region: 'eu-west-1'
-        },
         server_load_response: null,
         user:null,
         pics:[],
@@ -305,7 +299,7 @@ var app = {
             app.post(post_data, callback, true);
         },
         upload_thumbnail:(file_inf, next)=>{
-            const bucket = new AWS.S3(app.dat.s3_bucket_cred);
+            const bucket = new AWS.S3(app.dat.server_load_response.aws.s3_bucket_cred);
             var blobData = js.dataURItoBlob(file_inf.thumbnail);
             var data = {
                 Bucket: "zaparton",
@@ -322,7 +316,7 @@ var app = {
             });
         },
         upload_pic:(file_inf, next)=>{
-            const bucket = new AWS.S3(app.dat.s3_bucket_cred);
+            const bucket = new AWS.S3(app.dat.server_load_response.aws.s3_bucket_cred);
             var data = {
                 Bucket: "zaparton",
                 Key: 'pics/' + file_inf.file_name, 
@@ -372,7 +366,7 @@ var app = {
     //     app.post(post_data, callback, true);
     // },
     upload_thumbnail:(thumbnail, uniqueFileName, on_progress, on_success, on_failure)=>{
-        const bucket = new AWS.S3(app.dat.s3_bucket_cred);
+        const bucket = new AWS.S3(app.dat.server_load_response.aws.s3_bucket_cred);
         var blobData = js.dataURItoBlob(thumbnail);
         var data = {
             Bucket: "zaparton",
@@ -389,7 +383,7 @@ var app = {
         });
     },
     upload_picture:(file, uniqueFileName, on_progress, on_success, on_failure)=>{
-        const bucket = new AWS.S3(app.dat.s3_bucket_cred);
+        const bucket = new AWS.S3(app.dat.server_load_response.aws.s3_bucket_cred);
         var data = {
             Bucket: "zaparton",
             Key: 'pics/' + uniqueFileName, 
@@ -465,7 +459,7 @@ var app = {
         const $pic_box_mask = $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .pic_box_mask`);
         if (as_link) {
             $pic_box_mask.addClass('pic_box_mask_link');
-            $pic_box_mask.click(()=>{window.open(`${app.dat.s3_bucket_url}/pics/${fname}?rnd=${js.random_str(4)}`)});
+            $pic_box_mask.click(()=>{window.open(`${app.dat.server_load_response.aws.s3_bucket_url}/pics/${fname}?rnd=${js.random_str(4)}`)});
         } else {
             $pic_box_mask.removeClass('pic_box_mask_link');
             $pic_box_mask.unbind('click');
@@ -481,9 +475,9 @@ var app = {
         if (file_item) {
             const fname = js.extract_file_name(file_item[2]);
             const img = $(`#pic_boxes_wrapper div[slot_idx=${file_item[1]}] img`);
-            img.attr('src', `${app.dat.s3_bucket_url}/tn/${fname}.jpg?rnd=${js.random_str(4)}`);
-            img.attr('alt', `${app.dat.s3_bucket_url}/pics/${file_item[3]}?rnd=${js.random_str(4)}`);
-            img.attr('title', `${app.dat.s3_bucket_url}/pics/${file_item[3]}?rnd=${js.random_str(4)}`);
+            img.attr('src', `${app.dat.server_load_response.aws.s3_bucket_url}/tn/${fname}.jpg?rnd=${js.random_str(4)}`);
+            img.attr('alt', `${app.dat.server_load_response.aws.s3_bucket_url}/pics/${file_item[3]}?rnd=${js.random_str(4)}`);
+            img.attr('title', `${app.dat.server_load_response.aws.s3_bucket_url}/pics/${file_item[3]}?rnd=${js.random_str(4)}`);
             $(`#pic_boxes_wrapper div[slot_idx=${file_item[1]}] p`).hide();
             app.set_pic_status_idle_button(file_item[1], 'ok');
             img.fadeIn();
