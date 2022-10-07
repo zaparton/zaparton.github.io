@@ -95,13 +95,6 @@ const APP_GLOBAL = {
 var app = {
     dat:{
         srv_url: 'https://script.google.com/macros/s/AKfycbwMGsMJED0mc1xaJResbTz__WyC11EC2kAJbkZ0qaMbUu4SFZhpOVPDSLojk_YNrmXDtw/exec',
-        s3_bucket_url: 'https://zaparton.s3.eu-west-1.amazonaws.com',
-        s3_bucket_cred: {
-            accessKeyId: "AKIA56O6T2RPL67SHZXP",
-            secretAccessKey: "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",
-            //  sessionToken: "SESSION_TOKEN", // optional you can remove if you don't want pass
-            region: 'eu-west-1'
-        },
         server_load_response: null,
         user:null,
         pics:{
@@ -347,7 +340,7 @@ var app = {
             html += 
                 `<div class="pic_wrapper" file_name="${pic.file_name}" pid="${pic.pid}" status="${pic.status}">` + 
                     `<div class="pic_mask"></div>` + 
-                    `<img class="pic" src="${app.dat.s3_bucket_url}/tn/${js.extract_file_name(pic.file_name)}.jpg?rnd=${js.random_str(4)}" />` +
+                    `<img class="pic" src="${app.dat.server_load_response.aws.s3_bucket_url}/tn/${js.extract_file_name(pic.file_name)}.jpg?rnd=${js.random_str(4)}" />` +
                     `<div class="exif_box">${exif_html}</div>` +
                     `<div class="pic_toolbox">` + 
                         `<input type="button" class="bt_pic_toolbox bt_accept" value="">` +
@@ -359,7 +352,7 @@ var app = {
                 `</div>`;
         });
         $(html).appendTo($("#page_screening"));
-        $("#page_screening .pic").click((ev)=>{window.open(`${app.dat.s3_bucket_url}/pics/${$(ev.target).closest(".pic_wrapper").attr("file_name")}?rnd=${js.random_str(4)}`)});
+        $("#page_screening .pic").click((ev)=>{window.open(`${app.dat.server_load_response.aws.s3_bucket_url}/pics/${$(ev.target).closest(".pic_wrapper").attr("file_name")}?rnd=${js.random_str(4)}`)});
         $("#page_screening .bt_accept").click((ev)=>{app.screening($(ev.target).closest(".pic_wrapper"), APP_GLOBAL.PIC_STATUS.SCREEN_ACCEPTED)});
         $("#page_screening .bt_reject").click((ev)=>{app.screening($(ev.target).closest(".pic_wrapper"), APP_GLOBAL.PIC_STATUS.SCREEN_REJECTED)});
 
@@ -368,7 +361,7 @@ var app = {
             html += 
                 `<div class="pic_wrapper" file_name="${pic.file_name}" pid="${pic.pid}" status="${pic.status}">` + 
                     `<div class="pic_mask"></div>` + 
-                    `<img class="pic" src="${app.dat.s3_bucket_url}/tn/${js.extract_file_name(pic.file_name)}.jpg" />` +
+                    `<img class="pic" src="${app.dat.server_load_response.aws.s3_bucket_url}/tn/${js.extract_file_name(pic.file_name)}.jpg" />` +
                     `<div class="pic_toolbox">` + 
                         `<input type="button" class="bt_pic_toolbox bt_accept" value="">` +
                         `<input type="button" class="bt_pic_toolbox bt_reject" value="">` +
@@ -379,7 +372,7 @@ var app = {
                 `</div>`;
         });
         $(html).appendTo($("#page_quality_screening"));
-        $("#page_quality_screening .pic").click((ev)=>{window.open(`${app.dat.s3_bucket_url}/pics/${$(ev.target).closest(".pic_wrapper").attr("file_name")}`)});
+        $("#page_quality_screening .pic").click((ev)=>{window.open(`${app.dat.server_load_response.aws.s3_bucket_url}/pics/${$(ev.target).closest(".pic_wrapper").attr("file_name")}`)});
         $("#page_quality_screening .bt_accept").click((ev)=>{app.screening($(ev.target).closest(".pic_wrapper"), APP_GLOBAL.PIC_STATUS.QUALITY_SCREEN_ACCEPTED)});
         $("#page_quality_screening .bt_reject").click((ev)=>{app.screening($(ev.target).closest(".pic_wrapper"), APP_GLOBAL.PIC_STATUS.QUALITY_SCREEN_REJECTED)});
 
@@ -388,7 +381,7 @@ var app = {
             html += 
                 `<div class="pic_wrapper" file_name="${pic.file_name}" pid="${pic.pid}"  status="${pic.status}">` + 
                     `<div class="pic_mask"></div>` + 
-                    `<img class="pic" src="${app.dat.s3_bucket_url}/tn/${js.extract_file_name(pic.file_name)}.jpg" />` +
+                    `<img class="pic" src="${app.dat.server_load_response.aws.s3_bucket_url}/tn/${js.extract_file_name(pic.file_name)}.jpg" />` +
                     `<div class="pic_toolbox">` + 
                         `<input disabled type="button" class="bt_pic_toolbox bt_save_score" value="">` +
                         `<input type="button" class="bt_star" score="5" value="5">` +
@@ -403,7 +396,7 @@ var app = {
                 `</div>`;
         });
         $(html).appendTo($("#page_scoring"));
-        $("#page_scoring .pic").click((ev)=>{window.open(`${app.dat.s3_bucket_url}/pics/${$(ev.target).closest(".pic_wrapper").attr("file_name")}`)});
+        $("#page_scoring .pic").click((ev)=>{window.open(`${app.dat.server_load_response.aws.s3_bucket_url}/pics/${$(ev.target).closest(".pic_wrapper").attr("file_name")}`)});
         $("#page_scoring .bt_star").click((ev)=>{
             const score = $(ev.target).attr("score");
             const $pic_wrapper = $(ev.target).closest(".pic_wrapper");
