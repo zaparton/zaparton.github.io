@@ -182,7 +182,6 @@ var app = {
         app.dat.user = {
             uid: response.user[0],
             otp: (js.is_mobile()) ? response.user[7] : response.user[1],
-            otp: response.user[1],
             name: response.user[2],
             permision: {
                 screening: js.value_if_empty(response.user[3], 'NONE'),
