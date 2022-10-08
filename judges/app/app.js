@@ -144,6 +144,7 @@ var app = {
     post: (postdata, callback, no_animation)=>{
         please_wait = callback.please_wait || app.please_wait;
         if (!no_animation) please_wait(true);
+        const ex_postdata = {is_mobile:js.is_mobile()};
         try{
             $.ajax({
                 type: 'POST',
@@ -153,7 +154,7 @@ var app = {
                 async:true,
                 //timeout: 10000,
                 cache: false,
-                data: JSON.stringify(postdata),
+                data: JSON.stringify($.extend(postdata, ex_postdata)),
                 success:(response)=>{
                     if (!no_animation) please_wait(false);
                     if (response?.error?.code && response?.error?.code != 0){
@@ -180,6 +181,7 @@ var app = {
     build_user_info:(response)=>{
         app.dat.user = {
             uid: response.user[0],
+            otp: (js.is_mobile()) ? response.user[7] : response.user[1],
             otp: response.user[1],
             name: response.user[2],
             permision: {
