@@ -178,6 +178,13 @@ var app = {
             else app.pop_js_err(error);
         }
     },
+    pages:{
+        results:{
+            load:()=>{
+                console.log('boo')
+            }
+        }
+    },
     build_user_info:(response)=>{
         app.dat.user = {
             uid: response.user[0],
@@ -186,7 +193,8 @@ var app = {
             permision: {
                 screening: js.value_if_empty(response.user[3], 'NONE'),
                 quality_screening: js.value_if_empty(response.user[4], 'NONE'),
-                scoring: js.value_if_empty(response.user[5], 'NONE')
+                scoring: js.value_if_empty(response.user[5], 'NONE'),
+                results: Boolean(response.user[6] == "TRUE") || response.user[6]===true
             }
         }
         window.localStorage.setObj("zaparton-judge", app.dat.user);
@@ -195,6 +203,7 @@ var app = {
         if (app.dat.user.permision.screening == 'NONE') $("#tab_screening").addClass("tab_disabled");
         if (app.dat.user.permision.quality_screening == 'NONE') $("#tab_quality_screening").addClass("tab_disabled");
         if (app.dat.user.permision.scoring == 'NONE') $("#tab_scoring").addClass("tab_disabled");
+        if (!app.dat.user.permision.results) $("#tab_results").addClass("tab_disabled");
         $("#page_screening").attr("permision", app.dat.user.permision.screening);
         $("#page_quality_screening").attr("permision", app.dat.user.permision.quality_screening);
         $("#page_scoring").attr("permision", app.dat.user.permision.scoring);

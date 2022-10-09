@@ -11,10 +11,17 @@ body {
 .pic,
 .tab_title,
 #ico_menu,
-input[type="button"]{
+input[type="button"],
+.bt_campaign{
     cursor: pointer;
 }
 
 #dv_header_title {
     padding: 1em 5em 1em 3em;
+}
+
+.dv_menu>input:hover,
+.bt_campaign:hover{
+    background-color: #f0f0f0;
+    text-decoration: underline;
 }

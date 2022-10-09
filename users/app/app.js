@@ -162,7 +162,10 @@ var app = {
     post: (postdata, callback, no_animation)=>{
         please_wait = callback.please_wait || app.please_wait;
         if (!no_animation) please_wait(true);
-        const ex_postdata = {is_mobile:js.is_mobile()};
+        const ex_postdata = {
+            is_mobile:js.is_mobile(),
+            echo_idx:window.localStorage.getObj('zaparton-echo-idx')
+        };
         try{
             $.ajax({
                 type: 'POST',
@@ -269,6 +272,7 @@ var app = {
                 on_connect_error: (error)=>{ app.pic_mngr.on_error_level_1(file_inf.slot, error); },
                 on_js_error: (error)=>{ app.pic_mngr.on_error_level_1(file_inf.slot, error); },
                 on_success : (response)=>{
+                    window.localStorage.setObj('zaparton-echo-idx', response.user_idx);
                     app.update_upload_status(file_inf.$band, 'מוחק תמונה...', app.update_status_stages.DELETE, 2, 100);
                     app.dat.pics[file_inf.slot-1] = null;
                     next();
@@ -292,6 +296,7 @@ var app = {
                 on_connect_error: (error)=>{ app.pic_mngr.on_error_level_1(file_inf.slot, error); },
                 on_js_error: (error)=>{ app.pic_mngr.on_error_level_1(file_inf.slot, error); },
                 on_success : (response)=>{
+                    window.localStorage.setObj('zaparton-echo-idx', response.user_idx);
                     app.update_upload_status(file_inf.$band, 'בודק הרשאות...', app.update_status_stages.UPLOAD, 2, 100);
                     next();
                 }
@@ -347,6 +352,7 @@ var app = {
                 on_connect_error: (error)=>{ app.pic_mngr.on_error_level_1(file_inf.slot, error); },
                 on_js_error: (error)=>{ app.pic_mngr.on_error_level_1(file_inf.slot, error); },
                 on_success : (response)=>{
+                    window.localStorage.setObj('zaparton-echo-idx', response.user_idx);
                     app.update_upload_status(file_inf.$band, 'שומר שינויים', app.update_status_stages.UPLOAD, 5, 100);
                     next(response.new_pic);
                 }
@@ -696,6 +702,7 @@ var app = {
         if (otp == "") return;
         app.post(post_data,{
             on_success :(response)=>{
+                window.localStorage.setObj('zaparton-echo-idx', response.user_idx);
                 app.rebuild(response);
                 $("#dv_login").fadeOut();
                 $("#user").fadeIn();
@@ -723,7 +730,7 @@ var app = {
         };
         app.post(post_data,{
             on_success :(response)=>{
-                console.log(response);
+                window.localStorage.setObj('zaparton-echo-idx', response.user_idx);
                 $("#frm_login").hide();
                 $("#frm_login_2").fadeIn(e=>$("#eb_login_2").focus());
             },
@@ -760,6 +767,7 @@ var app = {
             };
             app.post(post_data,{
                 on_success :(response)=>{
+                    window.localStorage.setObj('zaparton-echo-idx', response.user_idx);
                     const is_new_user = app.is_new_user();
                     app.rebuild(response);
                     if (is_new_user) app.default_view();

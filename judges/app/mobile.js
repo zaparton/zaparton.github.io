@@ -28,6 +28,8 @@ app = $.extend(app, {
             $("#dv_header").removeClass("head_shrink");
             app.nav.scroll_inf[new_id] = {};
         }
+        const page = app.pages[new_id];
+        if (page?.load) page.load(old_id, new_id);
     },
     on_after_signup:()=>{
         $("#user_hours").one("animationend webkitAnimationEnd oAnimationEnd MSAnimationEnd", ()=>{
@@ -90,7 +92,7 @@ app = $.extend(app, {
         $("#dv_campaign_menu_mask").click(()=>{
             $("#dv_campaign_menu_mask").fadeOut();
         });
-        $("#tab_screening, #tab_quality_screening, #tab_scoring").click((el)=>{
+        $(".tab_title").click((el)=>{
             const id = $(el.target).attr("page_id");
             app.change_tab(id);
         })
