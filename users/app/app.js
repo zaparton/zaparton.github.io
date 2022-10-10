@@ -887,18 +887,6 @@ var app = {
         if (leave) leave(change); else change();
     },
     init_buttons: ()=>{
-        $(".dv_login_logo").click(()=>{
-            console.log('boo');
-            var pr = new Pic(3);
-            pr.greet();
-            pr.logit();
-            pr.log_3();
-            // var pic = new Pic(22);
-            // pic.log_4();
-            // pic.log_1();
-            // pic.log_2();
-            // pic.log_3();
-        });
         $("#bt_home").click(app.scroll_home);
         $("#frm_login").submit((e)=>{
             e.preventDefault(e);
@@ -930,7 +918,7 @@ var app = {
     },
     init_user: ()=>{
         app.dat.user = window.localStorage.getObj("zaparton-user");
-        console.log("app.init_user", app.dat.user);
+        // console.log("app.init_user", app.dat.user);
     },
     show_screen_message: msg=>{
         $("#dv_screen_message").fadeIn();
@@ -938,7 +926,7 @@ var app = {
     },
     init_mode: ()=> {
         app.dat.mode = js.urlParam("mode");
-        console.log("mode=", app.dat.mode);
+        // console.log("mode=", app.dat.mode);
         $("body").addClass("mode_" + app.dat.mode);
         if (app.dat.mode) $("#ttl_mode").html(app.dat.mode).show();
     },
@@ -985,7 +973,7 @@ var app = {
                     tmp_img.addEventListener("load", function () {
                         app.show_pic_mask(slot_idx);
                         EXIF.getData(tmp_img, function() {
-                            console.log(EXIF.getAllTags(this));
+                            // console.log(EXIF.getAllTags(this));
                             var thumbnailImage = app.createThumbnail(tmp_img);
                             img.src = thumbnailImage;
                             img.alt = file.name;

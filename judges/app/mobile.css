@@ -656,9 +656,9 @@ input[type="button"]{
     display: none !important;
 }
 
-.tooltiptext{
+/* .tooltiptext{
     display: none !important;
-}
+} */
 
 .user_box_item_toolbox>div:hover{
     box-shadow: 0 0 8px gray;
@@ -1019,3 +1019,45 @@ input[type="button"]{
 
 .page[permision="VIEW"] .pic_toolbox{display: none;}
 .page[permision="NONE"]{display: none !important;}
+
+.scoring_info{
+    font-size: 1.5em;
+    justify-content: space-evenly;
+}
+
+.scoring_info>div{
+    display: flex;
+}
+
+.scoring_info_title{
+    padding: 0.5em;
+}
+
+.scoring_info_value{
+    padding: 0.5em;
+    font-weight: bold;
+}
+
+.bt_info{
+    background-image: url(../img/info.svg);   
+}
+
+.score_tooltip{
+    white-space: nowrap;
+    text-align: left;
+}
+
+.pic_info_line {
+    display: flex;
+    font-size: 1.2em;
+    padding: 0.3em;
+}
+
+.pic_info_title {
+    width: 120px;
+    text-align: right;
+}
+
+.pic_info_value{
+    font-weight: 500;
+}

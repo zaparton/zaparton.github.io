@@ -79,6 +79,14 @@ var js = {
         if (!value) return if_empty;
         if (('' + value).trim() == '') return if_empty;
         return value;
+    },
+    datetime_str:(d)=>{
+        return [d.getMonth()+1,
+            d.getDate(),
+            d.getFullYear()].join('/')+' '+
+           [d.getHours(),
+            d.getMinutes(),
+            d.getSeconds()].join(':');
     }
 }
 
@@ -181,7 +189,19 @@ var app = {
     pages:{
         results:{
             load:()=>{
-                console.log('boo')
+                $("#page_results").html("");
+                var post_data = {
+                    act_id: "load_scoring",
+                    uid: app.dat.user.uid,
+                    otp: app.dat.user.otp,
+                    campaign_sub_id: app.dat.campaign.sub_id
+                };
+                app.post(post_data, {
+                    on_success :(response)=>{
+                        console.log(response);
+                        app.build_scoring_pics(response);
+                    }
+                });
             }
         }
     },
@@ -256,6 +276,7 @@ var app = {
             otp: app.dat.user.otp,
             campaign_sub_id: app.dat.campaign.sub_id,
             pid: $pic_wrapper.attr('pid'),
+            echo_idx: $pic_wrapper.attr('echo_idx'),
             file_name: $pic_wrapper.attr('file_name')
         };
         $pic_wrapper.slideUp();
@@ -277,6 +298,7 @@ var app = {
             campaign_sub_id: app.dat.campaign.sub_id,
             pid: $pic_wrapper.attr('pid'),
             file_name: $pic_wrapper.attr('file_name'),
+            echo_idx: $pic_wrapper.attr('echo_idx'),
             score: $pic_wrapper.attr('score')
         };
         $pic_wrapper.slideUp();
@@ -304,7 +326,8 @@ var app = {
                 pid:pic_arr[9],
                 status: pic_arr[5],
                 level: pic_arr[10],
-                exif: pic_arr[11]
+                exif: pic_arr[11],
+                echo_idx : pic_arr[0]
             }
             const $pic_exists = $(`.pic_wrapper[pid="${pic.pid}"]`);
             const diff_status = ($pic_exists.length>0 && $pic_exists.attr("status") != pic.status);
@@ -314,27 +337,7 @@ var app = {
         $.each(response.pics.for_screening, (i, pic_arr)=>{push_pic(app.dat.pics.to_screen, pic_arr)});
         $.each(response.pics.for_quality_screening, (i, pic_arr)=>{push_pic(app.dat.pics.to_quality_screen, pic_arr)});
         $.each(response.pics.for_scoring, (i, pic_arr)=>{push_pic(app.dat.pics.to_score, pic_arr)});
-
-/*
-        var pics = response.pics.slice();
-        $.each(pics, (i, pic_arr)=>{
-            const pic = {
-                file_name:pic_arr[2],
-                pid:pic_arr[9],
-                status: pic_arr[5],
-                level: pic_arr[10],
-                exif: pic_arr[11]
-            }
-            const $pic_exists = $(`.pic_wrapper[pid="${pic.pid}"]`);
-            const diff_status = ($pic_exists.length>0 && $pic_exists.attr("status") != pic.status);
-            if (diff_status) $pic_exists.remove();
-            if ($pic_exists.length == 0 || diff_status) {
-                if (pic.status == 0) app.dat.pics.to_screen.push(pic); 
-                else if (pic.status == 2) { app.dat.pics.to_quality_screen.push(pic); }
-                else if (pic.status == 4) { app.dat.pics.to_score.push(pic); }
-            }
-        });
-*/        
+     
         var html = ''
         $.each(app.dat.pics.to_screen, (i, pic)=>{ 
             $("#json").html('');
@@ -348,7 +351,7 @@ var app = {
                 $("#json").html('');
             }
             html += 
-                `<div class="pic_wrapper" file_name="${pic.file_name}" pid="${pic.pid}" status="${pic.status}">` + 
+                `<div class="pic_wrapper" file_name="${pic.file_name}" pid="${pic.pid}" status="${pic.status}" echo_idx="${pic.echo_idx}">` + 
                     `<div class="pic_mask"></div>` + 
                     `<img class="pic" src="${app.dat.server_load_response.aws.s3_bucket_url}/tn/${js.extract_file_name(pic.file_name)}.jpg?rnd=${js.random_str(4)}" />` +
                     `<div class="exif_box">${exif_html}</div>` +
@@ -362,14 +365,14 @@ var app = {
                 `</div>`;
         });
         $(html).appendTo($("#page_screening"));
-        $("#page_screening .pic").click((ev)=>{window.open(`${app.dat.server_load_response.aws.s3_bucket_url}/pics/${$(ev.target).closest(".pic_wrapper").attr("file_name")}?rnd=${js.random_str(4)}`)});
-        $("#page_screening .bt_accept").click((ev)=>{app.screening($(ev.target).closest(".pic_wrapper"), APP_GLOBAL.PIC_STATUS.SCREEN_ACCEPTED)});
-        $("#page_screening .bt_reject").click((ev)=>{app.screening($(ev.target).closest(".pic_wrapper"), APP_GLOBAL.PIC_STATUS.SCREEN_REJECTED)});
+        $("#page_screening .pic").off('click').click((ev)=>{window.open(`${app.dat.server_load_response.aws.s3_bucket_url}/pics/${$(ev.target).closest(".pic_wrapper").attr("file_name")}?rnd=${js.random_str(4)}`)});
+        $("#page_screening .bt_accept").off('click').click((ev)=>{app.screening($(ev.target).closest(".pic_wrapper"), APP_GLOBAL.PIC_STATUS.SCREEN_ACCEPTED)});
+        $("#page_screening .bt_reject").off('click').click((ev)=>{app.screening($(ev.target).closest(".pic_wrapper"), APP_GLOBAL.PIC_STATUS.SCREEN_REJECTED)});
 
         var html = ''
         $.each(app.dat.pics.to_quality_screen, (i, pic)=>{ 
             html += 
-                `<div class="pic_wrapper" file_name="${pic.file_name}" pid="${pic.pid}" status="${pic.status}">` + 
+                `<div class="pic_wrapper" file_name="${pic.file_name}" pid="${pic.pid}" status="${pic.status}"  echo_idx="${pic.echo_idx}">` + 
                     `<div class="pic_mask"></div>` + 
                     `<img class="pic" src="${app.dat.server_load_response.aws.s3_bucket_url}/tn/${js.extract_file_name(pic.file_name)}.jpg" />` +
                     `<div class="pic_toolbox">` + 
@@ -382,14 +385,14 @@ var app = {
                 `</div>`;
         });
         $(html).appendTo($("#page_quality_screening"));
-        $("#page_quality_screening .pic").click((ev)=>{window.open(`${app.dat.server_load_response.aws.s3_bucket_url}/pics/${$(ev.target).closest(".pic_wrapper").attr("file_name")}`)});
-        $("#page_quality_screening .bt_accept").click((ev)=>{app.screening($(ev.target).closest(".pic_wrapper"), APP_GLOBAL.PIC_STATUS.QUALITY_SCREEN_ACCEPTED)});
-        $("#page_quality_screening .bt_reject").click((ev)=>{app.screening($(ev.target).closest(".pic_wrapper"), APP_GLOBAL.PIC_STATUS.QUALITY_SCREEN_REJECTED)});
+        $("#page_quality_screening .pic").off('click').click((ev)=>{window.open(`${app.dat.server_load_response.aws.s3_bucket_url}/pics/${$(ev.target).closest(".pic_wrapper").attr("file_name")}`)});
+        $("#page_quality_screening .bt_accept").off('click').click((ev)=>{app.screening($(ev.target).closest(".pic_wrapper"), APP_GLOBAL.PIC_STATUS.QUALITY_SCREEN_ACCEPTED)});
+        $("#page_quality_screening .bt_reject").off('click').click((ev)=>{app.screening($(ev.target).closest(".pic_wrapper"), APP_GLOBAL.PIC_STATUS.QUALITY_SCREEN_REJECTED)});
 
         var html = ''
         $.each(app.dat.pics.to_score, (i, pic)=>{ 
             html += 
-                `<div class="pic_wrapper" file_name="${pic.file_name}" pid="${pic.pid}"  status="${pic.status}">` + 
+                `<div class="pic_wrapper" file_name="${pic.file_name}" pid="${pic.pid}"  status="${pic.status}"  echo_idx="${pic.echo_idx}">` + 
                     `<div class="pic_mask"></div>` + 
                     `<img class="pic" src="${app.dat.server_load_response.aws.s3_bucket_url}/tn/${js.extract_file_name(pic.file_name)}.jpg" />` +
                     `<div class="pic_toolbox">` + 
@@ -406,16 +409,87 @@ var app = {
                 `</div>`;
         });
         $(html).appendTo($("#page_scoring"));
-        $("#page_scoring .pic").click((ev)=>{window.open(`${app.dat.server_load_response.aws.s3_bucket_url}/pics/${$(ev.target).closest(".pic_wrapper").attr("file_name")}`)});
-        $("#page_scoring .bt_star").click((ev)=>{
+        $("#page_scoring .pic").off('click').click((ev)=>{window.open(`${app.dat.server_load_response.aws.s3_bucket_url}/pics/${$(ev.target).closest(".pic_wrapper").attr("file_name")}`)});
+        $("#page_scoring .bt_star").off('click').click((ev)=>{
             const score = $(ev.target).attr("score");
             const $pic_wrapper = $(ev.target).closest(".pic_wrapper");
             $pic_wrapper.attr("score", score);
             $pic_wrapper.find('.bt_save_score').prop("disabled", score == 0);
         });
-        $("#page_scoring .bt_save_score").click((ev)=>{app.scoring_save($(ev.target).closest(".pic_wrapper"))});
+        $("#page_scoring .bt_save_score").off('click').click((ev)=>{app.scoring_save($(ev.target).closest(".pic_wrapper"))});
 
     },
+    build_scoring_pics:(response)=>{
+        if (response.campaign_sub_id != app.dat.campaign.sub_id) return;
+        const judges = response.judges;
+        const pobj = {};
+        $.each(response.scoring, (i, pic_arr)=>{
+            var pic = pobj[pic_arr[1]];
+            if (!pic) {
+                pic = {
+                    pid : pic_arr[1],
+                    file_name : pic_arr[4],
+                    echo_idx: pic_arr[5],
+                    scoring : [],
+                    score : 0
+                }
+                pobj[pic.pid] = pic;
+            }
+            if (pic_arr[5] != '') pic.echo_idx = pic_arr[5];
+            pic.scoring.push({
+                judge: judges[pic_arr[0]],
+                score: parseInt(pic_arr[2])
+            });
+        });
+        const pics = [];
+        $.each(pobj, (pid, pic)=>{
+            var total = 0;
+            $.each(pic.scoring, (uid, item)=>{total += item.score});
+            pic.score = total / pic.scoring.length;
+            pics.push(pic);
+        });
+        pics.sort((a, b) => b.score - a.score);
+        var html = ''
+        $.each(pics, (i, pic)=>{ 
+            var score_tooltip = '';
+            $.each(pic.scoring, (uid, item)=>score_tooltip+=`<div>${item.judge.name}:&nbsp;<b>${item.score}</b></div>`);
+            score_tooltip = `<div class="score_tooltip">${score_tooltip}</div>`
+            html += 
+                `<div class="pic_wrapper" file_name="${pic.file_name}" pid="${pic.pid}"  score="${pic.score}" echo_idx="${pic.echo_idx}">` + 
+                    `<img class="pic" src="${app.dat.server_load_response.aws.s3_bucket_url}/tn/${js.extract_file_name(pic.file_name)}.jpg" />` +
+                    `<div class="pic_toolbox scoring_info">` + 
+                        `<div><div class="scoring_info_title">ניקוד:</div><div class="scoring_info_value">${pic.score}</div></div>` + 
+                        `<div class="tooltip"><div class="scoring_info_title">שופטים:</div><div class="scoring_info_value">${pic.scoring.length}</div><span class="tooltiptext">${score_tooltip}</span></div>` + 
+                        `<div><input title="מידע נוסף" type="button" class="bt_pic_toolbox bt_info" value=""></div>` + 
+                     `</div>` +
+                 `</div>`;
+        });
+        $("#page_results").html(html);
+        $(".bt_pic_toolbox.bt_info").click(ev=>app.load_pic_info($(ev.target).closest(".pic_wrapper")));
+    },
+    load_pic_info:($pic_wrapper)=>{
+        var post_data = {
+            act_id: "load_pic_info",
+            uid: app.dat.user.uid,
+            otp: app.dat.user.otp,
+            campaign_sub_id: app.dat.campaign.sub_id,
+            pid : $pic_wrapper.attr("pid"),
+            echo_idx : $pic_wrapper.attr("echo_idx"),
+        };
+        console.log(post_data);
+        app.post(post_data, {
+            on_success :(response)=>{
+                swal({
+                    html: 
+                    `<div class="pic_info_line"><div class="pic_info_title">צולם ע"י:</div><div class="pic_info_value">${response.user[3]}</div></div>` +
+                    `<div class="pic_info_line"><div class="pic_info_title">עלה לאתר ב:</div><div class="pic_info_value" style="direction:ltr">${js.datetime_str(new Date(response.pic[7]))}</div></div>` 
+                    ,
+                    showCancelButton: false, confirmButtonColor: '#3085d6', cancelButtonColor: '#d33', confirmButtonText: 'סגור',
+                });
+                console.log(response);
+            }
+        });
+},
     rebuild:(response)=>{
         app.dat.server_load_response = JSON.parse(JSON.stringify(response));
         app.build_user_info(response);
@@ -545,61 +619,6 @@ var app = {
                 app.pop_err('השרת מדווח על תקלה בביצוע הפעולה');
             }
         });
-    },
-    save_profile:()=>{
-        const clear_validate_msg = ()=>{
-            $("#profile_wrapper").find(".frm_error_msg")
-                .html('')
-                .attr("valid",true)
-                .attr("error_level", 0);
-            $("#profile_wrapper .frm_error_msg").hide();
-        }
-        clear_validate_msg();
-        const set_validate_msg = (selector, msg, error_level)=>{
-            $(selector).closest(".frm_section_row_content").find(".frm_error_msg")
-                .html(msg)
-                .attr("valid",false)
-                .attr("error_level", error_level||1);
-        }
-        const profile = {
-            name: $("#eb_profile_name").val().trim(),
-            email: $("#eb_profile_email").val().trim(),
-            birth_date: $("#eb_profile_birth").val().trim(),
-            gender: $("#sl_gender").val(),
-            phone: $("#eb_profile_phone").val().trim(),
-            level: $("#sl_level").val(),
-            kkl_mail: $("#cb_kkl_mail").is(":checked")
-        }
-        if (profile.name == '') set_validate_msg("#eb_profile_name", 'שדה חובה');
-        if (profile.email == '') set_validate_msg("#eb_profile_email", 'שדה חובה');
-            else if (!js.is_valid_email(profile.email)) set_validate_msg("#eb_profile_email", 'לא הצלחנו להבין את הכתובת הזאת', 2);
-        if (profile.birth_date == '') set_validate_msg("#eb_profile_birth", 'שדה חובה');
-        if (profile.phone == '') set_validate_msg("#eb_profile_phone", 'שדה חובה');
-            else if (!js.is_valid_phone(profile.phone)) set_validate_msg("#eb_profile_phone", 'לא הצלחנו להבין את המספר הזה', 2);
-        if (profile.level == '') set_validate_msg("#sl_level", 'שדה חובה');
-        if ($("#profile_wrapper .frm_error_msg[valid=false]").length>0) {
-            app.scroll_home();
-            setTimeout(() => {
-                $("#profile_wrapper .frm_error_msg[valid=false]").slideDown();
-            }, 200);
-        } else {
-            var post_data = {
-                act_id: "save_profile",
-                uid: app.dat.user.uid,
-                profile : profile
-            };
-            app.post(post_data,{
-                on_success :(response)=>{
-                    const is_new_user = app.is_new_user();
-                    app.rebuild(response);
-                    if (is_new_user) app.default_view();
-                    else app.pop_success('המידע נשמר בהצלחה');
-                },
-                on_error_response: (error)=>{
-                    app.pop_err('השרת מדווח על תקלה בביצוע הפעולה');
-                }
-            });
-        }
     },
     toggle_menu:()=>{
         const ratio = $("#header").width() / $("#header_title_1>span").width();
