@@ -243,7 +243,8 @@ var app = {
             $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .frm_section_row.pic_contest_status`).hide();
             $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .frm_section_row.pic_actions`).hide();
             $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .frm_section_row[pic_status]`).hide();
-            $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .pic_error`).html(msg || 'תקלה בביצוע הפעולה :(');
+            const msg_code = (error?.code) ? `&nbsp;#${error?.code}` : '';
+            $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .pic_error`).html(msg || 'תקלה בביצוע הפעולה :(' + msg_code);
             $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .pic_error`).show();
             app.disable_pic_mask(slot);
             console.log(`on_error_level_1: slot:${slot}, code:${error?.code}, desc:${error?.desc}`);
