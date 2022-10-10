@@ -82,16 +82,17 @@ input[type="button"]{
 #dv_header_title>div>span {
     white-space: nowrap;
 }
-#dv_header_tabs{
-    text-align: center;
-    white-space: nowrap;
+#dv_header_tabs {
+    display: flex;
+    justify-content: space-evenly;
 }
 
 #dv_header_tabs>div {
     display: inline-block;
-    width: 6em;
+    min-width: 3em;
     padding: 0.5em;
     font-size: 1.5em;
+    text-align: center;
 }
 
 #tab_indicator_wrapper{
