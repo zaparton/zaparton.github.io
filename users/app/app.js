@@ -511,6 +511,18 @@ var app = {
         });
         $("#log_wrapper").html(html);
     },
+    get_notice_section_html:(txt)=>{
+        return `<div class="frm_section"><div class="frm_section_box frm_info_box">${txt}</div></div>`;
+    },
+    build_notice:(response)=>{
+        app.dat.notice = app.clean_google_sheet_array(response.notice, true);
+        var html = '';
+        $.each(app.dat.notice, (i, item)=>{
+            var txt = '<p>' + js.r(item[0], '\n', '</p><p>') + '</p>';
+            html += app.get_notice_section_html(txt);
+        });
+        $("#notice_wrapper").html(html);
+    },
     build_user_info:(response)=>{
         app.dat.user = {
             uid: response.user[0],
@@ -589,6 +601,7 @@ var app = {
         app.build_user_info(response);
         app.build_pics(response);
         app.build_news(response);
+        app.build_notice(response);
         app.scroll_home();
         app.on_after_rebuild?.call();
     },
