@@ -502,9 +502,9 @@ var app = {
         return `<div class="frm_section"><div class="frm_section_box frm_info_box"><div class="frm_info_box_content">${txt}</div><div class="frm_info_box_date">${dt}</div></div></div>`;
     },
     build_news:(response)=>{
-        app.dat.news = app.clean_google_sheet_array(response.news, true).reverse();
+        app.dat.news = app.clean_google_sheet_array(response.news, true);
         var html = '';
-        $.each(app.dat.news, (i, item)=>{
+        $.each(app.dat.news.reverse(), (i, item)=>{
             var txt = js.r(item[1], '\n', '<br>');
             var dt = item[0];
             html += app.get_news_section_html(txt, dt);
@@ -515,10 +515,10 @@ var app = {
         return `<div class="frm_section"><div class="frm_section_box frm_info_box">${txt}</div></div>`;
     },
     build_notice:(response)=>{
-        app.dat.notice = app.clean_google_sheet_array(response.notice, true);
         var html = '';
-        $.each(app.dat.notice, (i, item)=>{
-            var txt = '<p>' + js.r(item[0], '\n', '</p><p>') + '</p>';
+        $.each(app.dat.news, (i, item)=>{
+            if (!item[2] || item[2] == '') return false;
+            var txt = '<p>' + js.r(item[2], '\n', '</p><p>') + '</p>';
             html += app.get_notice_section_html(txt);
         });
         $("#notice_wrapper").html(html);
