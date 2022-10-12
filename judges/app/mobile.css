@@ -1067,3 +1067,14 @@ input[type="button"]{
     background-color: yellow;
 
 }
+.user_info_box {
+    padding: 0 0.5em 1em 0;
+    background-color: #f9e9d6;
+    border-bottom: 1px silver dotted;
+}
+.user_info_box>div {
+    font-size: 1.5em;
+    display: inline-block;
+    padding: 0.2em 0.5em;
+    font-weight: 500;
+}

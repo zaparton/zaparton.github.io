@@ -327,7 +327,8 @@ var app = {
                 status: pic_arr[5],
                 level: pic_arr[10],
                 exif: pic_arr[11],
-                echo_idx : pic_arr[0]
+                echo_idx : pic_arr[0],
+                user_info : response.user_info[pic_arr[12]]
             }
             const $pic_exists = $(`.pic_wrapper[pid="${pic.pid}"]`);
             const diff_status = ($pic_exists.length>0 && $pic_exists.attr("status") != pic.status);
@@ -355,6 +356,7 @@ var app = {
                 `<div class="pic_wrapper" file_name="${pic.file_name}" pid="${pic.pid}" status="${pic.status}" echo_idx="${pic.echo_idx}">` + 
                     `<div class="pic_mask"></div>` + 
                     `<img class="pic" src="${app.dat.server_load_response.aws.s3_bucket_url}/tn/${js.extract_file_name(pic.file_name)}.jpg?rnd=${js.random_str(4)}" />` +
+                    `<div class="user_info_box"><div>${pic.user_info.name}</div><div>${pic.user_info.phone}</div><div><a href="mailto:${pic.user_info.email}">${pic.user_info.email}</a></div></div>` +
                     `<div class="exif_box">${exif_html}</div>` +
                     `<div class="pic_toolbox">` + 
                         `<input type="button" class="bt_pic_toolbox bt_accept" value="">` +
