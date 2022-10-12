@@ -517,7 +517,7 @@ var app = {
     build_notice:(response)=>{
         var html = '';
         $.each(app.dat.news, (i, item)=>{
-            if (!item[2] || item[2] == '') return false;
+            if (!item[2] || item[2] == '') return true;
             var txt = '<p>' + js.r(item[2], '\n', '</p><p>') + '</p>';
             html += app.get_notice_section_html(txt);
         });
