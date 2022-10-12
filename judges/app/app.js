@@ -350,6 +350,7 @@ var app = {
                 exif_html = $("#json").html();
                 $("#json").html('');
             }
+            exif_html = js.r(exif_html, "DateTimeOriginal", '<span class="exif_highlight">DateTimeOriginal</span>')
             html += 
                 `<div class="pic_wrapper" file_name="${pic.file_name}" pid="${pic.pid}" status="${pic.status}" echo_idx="${pic.echo_idx}">` + 
                     `<div class="pic_mask"></div>` + 
