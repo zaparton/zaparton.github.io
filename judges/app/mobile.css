@@ -1078,3 +1078,23 @@ input[type="button"]{
     padding: 0.2em 0.5em;
     font-weight: 500;
 }
+
+#bt_save_results_wrapper {
+    text-align: center;
+    padding: 2em 0 0 0;
+}
+
+#bt_save_results {
+    padding: 0.5em 1em 0.5em 3em;
+    border: 1px gray solid;
+    border-radius: 20px;
+    font-size: 1.5em;
+    background-image: url(../img/download.svg);
+    background-repeat: no-repeat;
+    background-position: left 14px center;
+    background-size: 1.5em;
+}
+
+#bt_save_results:hover {
+    transform: scale(1.1);
+}

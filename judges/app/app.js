@@ -87,6 +87,18 @@ var js = {
            [d.getHours(),
             d.getMinutes(),
             d.getSeconds()].join(':');
+    },
+    downloadCSVFile:(s_data, fname)=>{
+        var BOM = new Uint8Array([0xEF,0xBB,0xBF]);
+        file = new Blob([BOM, s_data], {type: "text/csv;charset=utf8"});
+        var temp_link = document.createElement('a');
+        temp_link.download = fname + ".csv";
+        var url = window.URL.createObjectURL(file);
+        temp_link.href = url;
+        temp_link.style.display = "none";
+        document.body.appendChild(temp_link);
+        temp_link.click();
+        document.body.removeChild(temp_link);
     }
 }
 
@@ -426,73 +438,69 @@ var app = {
         if (response.campaign_sub_id != app.dat.campaign.sub_id) return;
         const judges = response.judges;
         const pobj = {};
-        $.each(response.scoring, (i, pic_arr)=>{
-            var pic = pobj[pic_arr[1]];
-            if (!pic) {
-                pic = {
-                    pid : pic_arr[1],
-                    file_name : pic_arr[4],
-                    echo_idx: pic_arr[5],
+        $.each(response.scoring, (i, score_row)=>{
+            if (score_row[0] == '') return true;
+            var pic_score = pobj[score_row[1]];
+            if (!pic_score) {
+                pic_score = {
+                    pid : score_row[1],
                     scoring : [],
                     score : 0
                 }
-                pobj[pic.pid] = pic;
+                pic_score.pic = response.pics[score_row[1]];
+                pic_score.user = response.users[pic_score.pic[0]];
+                pobj[pic_score.pid] = pic_score;
             }
-            if (pic_arr[5] != '') pic.echo_idx = pic_arr[5];
-            pic.scoring.push({
-                judge: judges[pic_arr[0]],
-                score: parseInt(pic_arr[2])
+            pic_score.scoring.push({
+                judge: judges[score_row[0]],
+                score: parseInt(score_row[2])
             });
         });
-        const pics = [];
-        $.each(pobj, (pid, pic)=>{
+        const pic_scores = [];
+        $.each(pobj, (pid, pic_score)=>{
             var total = 0;
-            $.each(pic.scoring, (uid, item)=>{total += item.score});
-            pic.score = total / pic.scoring.length;
-            pics.push(pic);
+            $.each(pic_score.scoring, (uid, item)=>{total += item.score});
+            pic_score.score = total / pic_score.scoring.length;
+            pic_scores.push(pic_score);
         });
-        pics.sort((a, b) => b.score - a.score);
-        var html = ''
-        $.each(pics, (i, pic)=>{ 
+        pic_scores.sort((a, b) => b.score - a.score);
+        var html = '<div id="bt_save_results_wrapper"><input id="bt_save_results" type="button" value="שמור לקובץ אקסל"></div>'
+        $.each(pic_scores, (i, pic_score)=>{ 
             var score_tooltip = '';
-            $.each(pic.scoring, (uid, item)=>score_tooltip+=`<div>${item.judge.name}:&nbsp;<b>${item.score}</b></div>`);
+            $.each(pic_score.scoring, (uid, item)=>score_tooltip+=`<div>${item.judge.name}:&nbsp;<b>${item.score}</b></div>`);
+            var info_tooltip = 
+                `<div>${pic_score.user[3]}</div>` +
+                `<div>${pic_score.user[0]}</div>` +
+                `<div>${pic_score.user[7]}</div>`;
             score_tooltip = `<div class="score_tooltip">${score_tooltip}</div>`
             html += 
-                `<div class="pic_wrapper" file_name="${pic.file_name}" pid="${pic.pid}"  score="${pic.score}" echo_idx="${pic.echo_idx}">` + 
-                    `<img class="pic" src="${app.dat.server_load_response.aws.s3_bucket_url}/tn/${js.extract_file_name(pic.file_name)}.jpg" />` +
+                `<div class="pic_wrapper" file_name="${pic_score.pic[2]}" pid="${pic_score.pid}"  score="${pic_score.score}">` + 
+                    `<img class="pic" src="${app.dat.server_load_response.aws.s3_bucket_url}/tn/${js.extract_file_name(pic_score.pic[2])}.jpg" />` +
                     `<div class="pic_toolbox scoring_info">` + 
-                        `<div><div class="scoring_info_title">ניקוד:</div><div class="scoring_info_value">${pic.score}</div></div>` + 
-                        `<div class="tooltip"><div class="scoring_info_title">שופטים:</div><div class="scoring_info_value">${pic.scoring.length}</div><span class="tooltiptext">${score_tooltip}</span></div>` + 
-                        `<div><input title="מידע נוסף" type="button" class="bt_pic_toolbox bt_info" value=""></div>` + 
+                        `<div><div class="scoring_info_title">ניקוד:</div><div class="scoring_info_value">${pic_score.score}</div></div>` + 
+                        `<div class="tooltip"><div class="scoring_info_title">שופטים:</div><div class="scoring_info_value">${pic_score.scoring.length}</div><span class="tooltiptext">${score_tooltip}</span></div>` + 
+                        `<div class="tooltip"><input title="מידע נוסף" type="button" class="bt_pic_toolbox bt_info" value=""><span class="tooltiptext">${info_tooltip}</span></div>` + 
                      `</div>` +
                  `</div>`;
         });
         $("#page_results").html(html);
-        $(".bt_pic_toolbox.bt_info").click(ev=>app.load_pic_info($(ev.target).closest(".pic_wrapper")));
-    },
-    load_pic_info:($pic_wrapper)=>{
-        var post_data = {
-            act_id: "load_pic_info",
-            uid: app.dat.user.uid,
-            otp: app.dat.user.otp,
-            campaign_sub_id: app.dat.campaign.sub_id,
-            pid : $pic_wrapper.attr("pid"),
-            echo_idx : $pic_wrapper.attr("echo_idx"),
-        };
-        console.log(post_data);
-        app.post(post_data, {
-            on_success :(response)=>{
-                swal({
-                    html: 
-                    `<div class="pic_info_line"><div class="pic_info_title">צולם ע"י:</div><div class="pic_info_value">${response.user[3]}</div></div>` +
-                    `<div class="pic_info_line"><div class="pic_info_title">עלה לאתר ב:</div><div class="pic_info_value" style="direction:ltr">${js.datetime_str(new Date(response.pic[7]))}</div></div>` 
-                    ,
-                    showCancelButton: false, confirmButtonColor: '#3085d6', cancelButtonColor: '#d33', confirmButtonText: 'סגור',
-                });
-                console.log(response);
-            }
+        $("#page_results .pic").off('click').click((ev)=>{window.open(`${app.dat.server_load_response.aws.s3_bucket_url}/pics/${$(ev.target).closest(".pic_wrapper").attr("file_name")}?rnd=${js.random_str(4)}`)});
+        $("#bt_save_results_wrapper").off('click').click((ev)=>{
+            const rows = [];
+            $.each(pic_scores, (i, pic_score)=>{ 
+                rows.push([
+                    `"${pic_score.score}"`,
+                    `"${pic_score.pic[2]}"`,
+                    `"${pic_score.pic[3]}"`,
+                    `"${pic_score.user[3]}"`,
+                    `"${pic_score.user[0]}"`,
+                    `"${pic_score.user[7]}"`,
+                    `"${app.dat.server_load_response.aws.s3_bucket_url}/pics/${pic_score.pic[2]}"`
+                ].join(","));
+            });
+            js.downloadCSVFile(rows.join("\n"), app.dat.campaign.sub_title + " - 2022")
         });
-},
+    },
     rebuild:(response)=>{
         app.dat.server_load_response = JSON.parse(JSON.stringify(response));
         app.build_user_info(response);
