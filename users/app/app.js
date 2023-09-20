@@ -315,7 +315,7 @@ var app = {
             };
             app.update_upload_status(file_inf.$band, 'מעלה צלמית', app.update_status_stages.UPLOAD, 3, 0);
             app.dat.uploads_in_progress[file_inf.slot] = bucket.upload(data, function(err, data){
-                if (err) app.pic_mngr.on_error_level_1(file_inf, err)
+                if (err) app.pic_mngr.on_error_level_1(file_inf.slot, err)
                 else next()
             }).on('httpUploadProgress', (progress)=> {
                 app.update_upload_status(file_inf.$band, 'מעלה צלמית', app.update_status_stages.UPLOAD, 3, Math.round(progress.loaded / progress.total * 100));
@@ -1009,18 +1009,17 @@ var app = {
                             // file_inf.$pic_status.attr('pic_status', 'uploading')
                             app.pic_mngr.clear_pic_space(file_inf, ()=>{
                                 app.dat.pics[file_inf.slot-1] = null;
+                                app.uploadFileToS3('https://zaparton.s3.amazonaws.com/pics/test.jpg?AWSAccessKeyId=AKIA56O6T2RPGA3F6JKG&Policy=eyJleHBpcmF0aW9uIjoiMjAyMy0wOS0yMFQyMTo1MTozMy4wODVaIiwiY29uZGl0aW9ucyI6W3siYnVja2V0IjoiemFwYXJ0b24ifSx7ImtleSI6InBpY3MvdGVzdC5qcGcifSx7ImFjbCI6InB1YmxpYy1yZWFkIn0seyJzdWNjZXNzX2FjdGlvbl9zdGF0dXMiOiIyMDEifV19&Signature=xQBvhR69m+WNOdHFLJ9vS9zBiOn0JKeozfwHEQklbZM=', file_inf.file);
+                                /*
                                 app.pic_mngr.upload_thumbnail(file_inf, ()=>{
                                     app.pic_mngr.upload_pic(file_inf, ()=>{
                                         app.pic_mngr.save_pic(file_inf, (new_pic)=>{
                                             app.dat.pics[slot_idx-1] = new_pic;
                                             app.build_pic(slot_idx, new_pic);
-                                            // app.update_pic_upload_status(file_inf.slot, 'ok');
-                                            // app.show_pic_mask(slot_idx, file_inf.file_name, true);
-                                            // app.set_pic_status(slot_idx, 0);
-                                            // file_inf.$pic_status.attr('pic_status', 'ok')
                                         })
                                     })
                                 })
+                                */
                             });
                         });
                     });
@@ -1121,7 +1120,41 @@ var app = {
         } else {
             app.init();
         }
-    }
+    },
+    uploadFileToS3:function(presignedUrl, file) {
+        const xhr = new XMLHttpRequest();
+        xhr.open('PUT', presignedUrl, true);
+      
+        xhr.onload = function () {
+          if (xhr.status === 200) {
+            console.log('File uploaded successfully');
+            // Handle success
+          } else {
+            console.error('Error uploading file:', xhr.statusText);
+            // Handle error
+          }
+        };
+      
+        xhr.onerror = function () {
+          console.error('Error uploading file:', xhr.statusText);
+          // Handle error
+        };
+      
+        // Track upload progress
+        /*
+        xhr.upload.onprogress = function (event) {
+          if (event.lengthComputable) {
+            const percentComplete = (event.loaded / event.total) * 100;
+            console.log(`Uploaded ${percentComplete.toFixed(2)}%`);
+            // Update progress bar or display progress to the user
+          }
+        };
+        */
+      
+        xhr.setRequestHeader('Content-Type', file.type);
+        xhr.send(file);
+      }
+          
 }
 
 $(app.start)
