@@ -1009,7 +1009,7 @@ var app = {
                             // file_inf.$pic_status.attr('pic_status', 'uploading')
                             app.pic_mngr.clear_pic_space(file_inf, ()=>{
                                 app.dat.pics[file_inf.slot-1] = null;
-                                app.uploadFileToS3('https://zaparton.s3.amazonaws.com/pics/test.jpg?AWSAccessKeyId=AKIA56O6T2RPGA3F6JKG&Policy=eyJleHBpcmF0aW9uIjoiMjAyMy0wOS0yMFQyMTo1MTozMy4wODVaIiwiY29uZGl0aW9ucyI6W3siYnVja2V0IjoiemFwYXJ0b24ifSx7ImtleSI6InBpY3MvdGVzdC5qcGcifSx7ImFjbCI6InB1YmxpYy1yZWFkIn0seyJzdWNjZXNzX2FjdGlvbl9zdGF0dXMiOiIyMDEifV19&Signature=xQBvhR69m+WNOdHFLJ9vS9zBiOn0JKeozfwHEQklbZM=', file_inf.file);
+                                app.uploadFileToS3('https://zaparton-2023.s3.amazonaws.com/test.jpg?AWSAccessKeyId=AKIA56O6T2RPHM433PGG&Policy=eyJleHBpcmF0aW9uIjoiMjAyMy0wOS0yMVQwMDowMTo1Ni40NjRaIiwiY29uZGl0aW9ucyI6W3siYnVja2V0IjoiemFwYXJ0b24tMjAyMyJ9LHsia2V5IjoidGVzdC5qcGcifSx7ImFjbCI6InByaXZhdGUifSx7InN1Y2Nlc3NfYWN0aW9uX3N0YXR1cyI6IjIwMSJ9XX0=&Signature=pS7LuuTDjN3AvAOIo4k+RjMY6sBdthlWHhY0xWcHo/E=', file_inf.file);
                                 /*
                                 app.pic_mngr.upload_thumbnail(file_inf, ()=>{
                                     app.pic_mngr.upload_pic(file_inf, ()=>{
