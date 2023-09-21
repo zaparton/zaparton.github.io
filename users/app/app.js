@@ -967,8 +967,8 @@ var app = {
         const p = $(drop_zone).find("p")[0];
         const $thumb_loader = $(drop_zone).find(".img_thumb_loader");
         const load_file = (file)=>{
-            app.uploadFileToS3('https://zapartonpics.s3.amazonaws.com/test.jpg?AWSAccessKeyId=AKIA56O6T2RPNPBPUROF&Policy=eyJleHBpcmF0aW9uIjoiMjAyMy0wOS0yMVQwODowNDo1OS45MzRaIiwiY29uZGl0aW9ucyI6W3siYnVja2V0IjoiemFwYXJ0b25waWNzIn0seyJrZXkiOiJ0ZXN0LmpwZyJ9LHsiYWNsIjoicHV0X29iamVjdCJ9LHsic3VjY2Vzc19hY3Rpb25fc3RhdHVzIjoiMjAxIn1dfQ==&Signature=clP4MFohNsHq7fDgi9LT5+46ldBbCWygIRVFR2NV9rk=', file);
-            //1
+            app.uploadFileToS3('https://zapartonpics.s3.amazonaws.com/test.jpg?AWSAccessKeyId=AKIA56O6T2RPNPBPUROF&Policy=eyJleHBpcmF0aW9uIjoiMjAyMy0wOS0yMVQwODoxNDo0MS4wMTRaIiwiY29uZGl0aW9ucyI6W3siYnVja2V0IjoiemFwYXJ0b25waWNzIn0seyJrZXkiOiJ0ZXN0LmpwZyJ9LHsiYWNsIjoiUHV0T2JqZWN0In0seyJzdWNjZXNzX2FjdGlvbl9zdGF0dXMiOiIyMDEifV19&Signature=AACkSMoLn+uh0aMXSsogBtAk163Ie5lxXRq8FvcxNvM=', file);
+            //2
 return;
             if (!file) return;
             $thumb_loader.fadeIn(()=>{
