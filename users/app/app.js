@@ -835,7 +835,7 @@ var app = {
                 if (profile.email == '') page.set_validate_msg("#eb_profile_email", 'שדה חובה');
                     else if (!js.is_valid_email(profile.email)) page.set_validate_msg("#eb_profile_email", 'לא הצלחנו להבין את הכתובת הזאת', 2);
                 if (profile.birth_date == '') page.set_validate_msg("#eb_profile_birth", 'שדה חובה');
-                    else if (profile.birth_date < 1902 || profile.birth_date > 2022) page.set_validate_msg("#eb_profile_birth", 'שדה חובה');
+                    else if (profile.birth_date < 1902 || profile.birth_date > 2023) page.set_validate_msg("#eb_profile_birth", 'שדה חובה');
         
                 if (profile.phone == '') page.set_validate_msg("#eb_profile_phone", 'שדה חובה');
                     else if (!js.is_valid_phone(profile.phone)) page.set_validate_msg("#eb_profile_phone", 'לא הצלחנו להבין את המספר הזה', 2);
