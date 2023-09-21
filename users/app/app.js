@@ -967,7 +967,7 @@ var app = {
         const p = $(drop_zone).find("p")[0];
         const $thumb_loader = $(drop_zone).find(".img_thumb_loader");
         const load_file = (file)=>{
-            app.uploadFileToS3('https://zaparton-2023.s3.amazonaws.com/test.jpg?AWSAccessKeyId=AKIA56O6T2RPIHAUOOEO&Policy=eyJleHBpcmF0aW9uIjoiMjAyMy0wOS0yMVQwMDo1ODowNS41NzZaIiwiY29uZGl0aW9ucyI6W3siYnVja2V0IjoiemFwYXJ0b24tMjAyMyJ9LHsia2V5IjoidGVzdC5qcGcifSx7ImFjbCI6InByaXZhdGUifSx7InN1Y2Nlc3NfYWN0aW9uX3N0YXR1cyI6IjIwMSJ9XX0=&Signature=hIrIuLXXbMZLcyN9Q10fxqr/OPs5RQJdvesZM3f2FBs=', file);
+            app.uploadFileToS3('https://zapartonpics.s3.amazonaws.com/test.jpg?AWSAccessKeyId=AKIA56O6T2RPNPBPUROF&Policy=eyJleHBpcmF0aW9uIjoiMjAyMy0wOS0yMVQwNzoxMzoyMi40NDZaIiwiY29uZGl0aW9ucyI6W3siYnVja2V0IjoiemFwYXJ0b25waWNzIn0seyJrZXkiOiJ0ZXN0LmpwZyJ9LHsiYWNsIjoicHVibGljLXJlYWQifSx7InN1Y2Nlc3NfYWN0aW9uX3N0YXR1cyI6IjIwMSJ9XX0=&Signature=H4Db7q+nVBg3iJVZzvuTjSsiGCNXOOC+CSsX83YkJY8=', file);
 return;
             if (!file) return;
             $thumb_loader.fadeIn(()=>{
