@@ -267,7 +267,7 @@ var app = {
             };
             const callback = {
                 on_error_response: (error)=>{ 
-                    if (error?.code == 7 || error?.code == 8) app.pic_mngr.on_error_level_1(file_inf.slot, error, error.desc); 
+                    if (error?.code == 7 || error?.code == 8 || error?.code == 13) app.pic_mngr.on_error_level_1(file_inf.slot, error, error.desc); 
                     else app.pic_mngr.on_error_level_1(file_inf.slot, error); 
                 },
                 on_connect_error: (error)=>{ app.pic_mngr.on_error_level_1(file_inf.slot, error); },
