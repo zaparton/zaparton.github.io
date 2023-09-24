@@ -380,7 +380,7 @@ var app = {
                 `</div>`;
         });
         $(html).appendTo($("#page_screening"));
-        $("#page_screening .pic").off('click').click((ev)=>{window.open(`${app.dat.server_load_response.aws.s3_bucket_url}/pics/${$(ev.target).closest(".pic_wrapper").attr("file_name")}?rnd=${js.random_str(4)}`)});
+        $("#page_screening .pic").off('click').click((ev)=>{window.open(`${app.dat.server_load_response.aws.s3_bucket_url}/pic/${$(ev.target).closest(".pic_wrapper").attr("file_name")}?rnd=${js.random_str(4)}`)});
         $("#page_screening .bt_accept").off('click').click((ev)=>{app.screening($(ev.target).closest(".pic_wrapper"), APP_GLOBAL.PIC_STATUS.SCREEN_ACCEPTED)});
         $("#page_screening .bt_reject").off('click').click((ev)=>{app.screening($(ev.target).closest(".pic_wrapper"), APP_GLOBAL.PIC_STATUS.SCREEN_REJECTED)});
 
@@ -400,7 +400,7 @@ var app = {
                 `</div>`;
         });
         $(html).appendTo($("#page_quality_screening"));
-        $("#page_quality_screening .pic").off('click').click((ev)=>{window.open(`${app.dat.server_load_response.aws.s3_bucket_url}/pics/${$(ev.target).closest(".pic_wrapper").attr("file_name")}`)});
+        $("#page_quality_screening .pic").off('click').click((ev)=>{window.open(`${app.dat.server_load_response.aws.s3_bucket_url}/pic/${$(ev.target).closest(".pic_wrapper").attr("file_name")}`)});
         $("#page_quality_screening .bt_accept").off('click').click((ev)=>{app.screening($(ev.target).closest(".pic_wrapper"), APP_GLOBAL.PIC_STATUS.QUALITY_SCREEN_ACCEPTED)});
         $("#page_quality_screening .bt_reject").off('click').click((ev)=>{app.screening($(ev.target).closest(".pic_wrapper"), APP_GLOBAL.PIC_STATUS.QUALITY_SCREEN_REJECTED)});
 
@@ -424,7 +424,7 @@ var app = {
                 `</div>`;
         });
         $(html).appendTo($("#page_scoring"));
-        $("#page_scoring .pic").off('click').click((ev)=>{window.open(`${app.dat.server_load_response.aws.s3_bucket_url}/pics/${$(ev.target).closest(".pic_wrapper").attr("file_name")}`)});
+        $("#page_scoring .pic").off('click').click((ev)=>{window.open(`${app.dat.server_load_response.aws.s3_bucket_url}/pic/${$(ev.target).closest(".pic_wrapper").attr("file_name")}`)});
         $("#page_scoring .bt_star").off('click').click((ev)=>{
             const score = $(ev.target).attr("score");
             const $pic_wrapper = $(ev.target).closest(".pic_wrapper");
@@ -484,7 +484,7 @@ var app = {
                  `</div>`;
         });
         $("#page_results").html(html);
-        $("#page_results .pic").off('click').click((ev)=>{window.open(`${app.dat.server_load_response.aws.s3_bucket_url}/pics/${$(ev.target).closest(".pic_wrapper").attr("file_name")}?rnd=${js.random_str(4)}`)});
+        $("#page_results .pic").off('click').click((ev)=>{window.open(`${app.dat.server_load_response.aws.s3_bucket_url}/pic/${$(ev.target).closest(".pic_wrapper").attr("file_name")}?rnd=${js.random_str(4)}`)});
         $("#bt_save_results_wrapper").off('click').click((ev)=>{
             const rows = [];
             $.each(pic_scores, (i, pic_score)=>{ 
@@ -495,7 +495,7 @@ var app = {
                     `"${pic_score.user[3]}"`,
                     `"${pic_score.user[0]}"`,
                     `"${pic_score.user[7]}"`,
-                    `"${app.dat.server_load_response.aws.s3_bucket_url}/pics/${pic_score.pic[2]}"`
+                    `"${app.dat.server_load_response.aws.s3_bucket_url}/pic/${pic_score.pic[2]}"`
                 ].join(","));
             });
             js.downloadCSVFile(rows.join("\n"), app.dat.campaign.sub_title + " - 2023")
