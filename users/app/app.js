@@ -516,7 +516,7 @@ var app = {
         $.each(app.dat.news.reverse(), (i, item)=>{
             var txt = js.r(item[1], '\n', '<br>');
             var dt = item[0];
-            html += app.get_news_section_html(txt, dt);
+            if (txt.trim() != '') html += app.get_news_section_html(txt, dt);
         });
         $("#log_wrapper").html(html);
     },
