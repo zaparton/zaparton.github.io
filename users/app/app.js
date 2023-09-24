@@ -164,7 +164,8 @@ var app = {
         if (!no_animation) please_wait(true);
         const ex_postdata = {
             is_mobile:js.is_mobile(),
-            echo_idx:window.localStorage.getObj('zaparton-echo-idx')
+            echo_idx:window.localStorage.getObj('zaparton-echo-idx'),
+            client_ver:2023092400
         };
         try{
             $.ajax({
@@ -274,9 +275,15 @@ var app = {
                 on_js_error: (error)=>{ app.pic_mngr.on_error_level_1(file_inf.slot, error); },
                 on_success : (response)=>{
                     window.localStorage.setObj('zaparton-echo-idx', response.user_idx);
+                    app.animate_upload_status(file_inf.$band, 'מוחק תמונה...', app.update_status_stages.DELETE, 2, 10, 100, ()=>{
+                        app.dat.pics[file_inf.slot-1] = null;
+                        next();
+                    });
+                    /*
                     app.update_upload_status(file_inf.$band, 'מוחק תמונה...', app.update_status_stages.DELETE, 2, 100);
                     app.dat.pics[file_inf.slot-1] = null;
                     next();
+                    */
                 }
             }
             app.post(post_data, callback, true);
@@ -287,11 +294,13 @@ var app = {
                 act_id: "delete_pic",
                 uid: app.dat.user.uid,
                 otp: app.dat.user.otp,
-                slot: file_inf.slot
+                slot: file_inf.slot,
+                file_name: file_inf.file_name,
+                thumbnail_file_name: file_inf.thumbnail_file_name
             };
             const callback = {
                 on_error_response: (error)=>{ 
-                    if (error?.code == 7 || error?.code == 8) app.pic_mngr.on_error_level_1(file_inf.slot, error, error.desc); 
+                    if (error?.code == 7 || error?.code == 8 || error?.code == 13) app.pic_mngr.on_error_level_1(file_inf.slot, error, error.desc); 
                     else app.pic_mngr.on_error_level_1(file_inf.slot, error); 
                 },
                 on_connect_error: (error)=>{ app.pic_mngr.on_error_level_1(file_inf.slot, error); },
@@ -299,11 +308,12 @@ var app = {
                 on_success : (response)=>{
                     window.localStorage.setObj('zaparton-echo-idx', response.user_idx);
                     app.update_upload_status(file_inf.$band, 'בודק הרשאות...', app.update_status_stages.UPLOAD, 2, 100);
-                    next();
+                    next(response);
                 }
             }
             app.post(post_data, callback, true);
         },
+        /*
         upload_thumbnail:(file_inf, next)=>{
             const bucket = new AWS.S3(app.dat.server_load_response.aws.s3_bucket_cred);
             var blobData = js.dataURItoBlob(file_inf.thumbnail);
@@ -337,6 +347,44 @@ var app = {
                 app.update_upload_status(file_inf.$band, 'מעלה תמונה', app.update_status_stages.UPLOAD, 4, Math.round(progress.loaded / progress.total * 100));
             });
         },
+        */
+        upload_file: opt =>{
+            const xhr = new XMLHttpRequest();
+            xhr.open('PUT', opt.pre_signed_url, true);
+            xhr.onload = ()=> {
+              if (xhr.status === 200) opt.on_complete();
+              else opt.on_error(xhr.statusText);
+            }
+            xhr.onerror = ()=> opt.on_error(xhr.statusText);
+            xhr.upload.onprogress = event => {
+              if (event.lengthComputable) opt.on_progress(Math.round(event.loaded / event.total * 100));
+            };
+            xhr.setRequestHeader('Content-Type', opt.file.type);
+            xhr.send(opt.file);
+            return xhr;
+        },
+        upload_thumbnail:(file_inf, next)=>{
+            const opt = {
+                pre_signed_url: file_inf.pre_signed_urls.thumbnail,
+                file: js.dataURItoBlob(file_inf.thumbnail),
+                on_progress: progress => app.update_upload_status(file_inf.$band, 'מעלה צלמית', app.update_status_stages.UPLOAD, 3, progress),
+                on_complete: next,
+                on_error: err => app.pic_mngr.on_error_level_1(file_inf.slot, err)
+            }
+            app.update_upload_status(file_inf.$band, 'מעלה צלמית', app.update_status_stages.UPLOAD, 3, 0);
+            app.dat.uploads_in_progress[file_inf.slot] = app.pic_mngr.upload_file(opt);
+        },
+        upload_pic:(file_inf, next)=>{
+            const opt = {
+                pre_signed_url: file_inf.pre_signed_urls.pic,
+                file: file_inf.file,
+                on_progress: progress => app.update_upload_status(file_inf.$band, 'מעלה תמונה', app.update_status_stages.UPLOAD, 4, progress),
+                on_complete: next,
+                on_error: err => app.pic_mngr.on_error_level_1(file_inf.slot, err)
+            }
+            app.update_upload_status(file_inf.$band, 'מעלה תמונה', app.update_status_stages.UPLOAD, 4, 0);
+            app.dat.uploads_in_progress[file_inf.slot] = app.pic_mngr.upload_file(opt);
+        },
         save_pic:(file_inf, next)=>{
             app.update_upload_status(file_inf.$band, 'שומר שינויים', app.update_status_stages.UPLOAD, 5, 0);
             var post_data = {
@@ -354,56 +402,17 @@ var app = {
                 on_js_error: (error)=>{ app.pic_mngr.on_error_level_1(file_inf.slot, error); },
                 on_success : (response)=>{
                     window.localStorage.setObj('zaparton-echo-idx', response.user_idx);
+                    app.animate_upload_status(file_inf.$band, 'שומר שינויים', app.update_status_stages.UPLOAD, 5, 10, 100, ()=>{
+                        next(response.new_pic);
+                    });
+                    /*
                     app.update_upload_status(file_inf.$band, 'שומר שינויים', app.update_status_stages.UPLOAD, 5, 100);
                     next(response.new_pic);
+                    */
                 }
             }
             app.post(post_data, callback, true);
         },
-    },
-    // save_pic:(slot, file_name, org_file_name, on_success, on_failure)=>{
-    //     var post_data = {
-    //         act_id: "save_pic",
-    //         uid: app.dat.user.uid,
-    //         otp: app.dat.user.otp,
-    //         slot: slot,
-    //         file_name: file_name,
-    //         org_file_name: org_file_name
-    //     };
-    //     app.post(post_data, callback, true);
-    // },
-    upload_thumbnail:(thumbnail, uniqueFileName, on_progress, on_success, on_failure)=>{
-        const bucket = new AWS.S3(app.dat.server_load_response.aws.s3_bucket_cred);
-        var blobData = js.dataURItoBlob(thumbnail);
-        var data = {
-            Bucket: "zaparton",
-            Key: 'tn/' + uniqueFileName, 
-            Body: blobData,
-            ContentType: 'image/jpeg'
-        };
-        on_progress?.call(this, 0,);
-        return bucket.upload(data, function(err, data){
-            if (err) on_failure?.call(this, data, err)
-            else on_success?.call(this, data, err)
-        }).on('httpUploadProgress', (progress)=> {
-            on_progress?.call(this, Math.round(progress.loaded / progress.total * 100));
-        });
-    },
-    upload_picture:(file, uniqueFileName, on_progress, on_success, on_failure)=>{
-        const bucket = new AWS.S3(app.dat.server_load_response.aws.s3_bucket_cred);
-        var data = {
-            Bucket: "zaparton",
-            Key: 'pics/' + uniqueFileName, 
-            Body: file,
-            ContentType: file.type
-        };
-        on_progress?.call(this, 0,);
-        return bucket.upload(data, function(err, data){
-            if (err) on_failure?.call(this, data, err)
-            else on_success?.call(this, data, err)
-        }).on('httpUploadProgress', (progress)=> {
-            on_progress?.call(this, Math.round(progress.loaded / progress.total * 100));
-        });
     },
     update_pic_upload_status(slot, status){
         $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .frm_section_row.pic_contest_status`).hide();
@@ -466,7 +475,7 @@ var app = {
         const $pic_box_mask = $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .pic_box_mask`);
         if (as_link) {
             $pic_box_mask.addClass('pic_box_mask_link');
-            $pic_box_mask.click(()=>{window.open(`${app.dat.server_load_response.aws.s3_bucket_url}/pics/${fname}?rnd=${js.random_str(4)}`)});
+            $pic_box_mask.click(()=>{window.open(`${app.dat.server_load_response.aws.s3_bucket_url}/pic/${fname}?rnd=${js.random_str(4)}`)});
         } else {
             $pic_box_mask.removeClass('pic_box_mask_link');
             $pic_box_mask.unbind('click');
@@ -483,8 +492,8 @@ var app = {
             const fname = js.extract_file_name(file_item[2]);
             const img = $(`#pic_boxes_wrapper div[slot_idx=${file_item[1]}] img`);
             img.attr('src', `${app.dat.server_load_response.aws.s3_bucket_url}/tn/${fname}.jpg?rnd=${js.random_str(4)}`);
-            img.attr('alt', `${app.dat.server_load_response.aws.s3_bucket_url}/pics/${file_item[3]}?rnd=${js.random_str(4)}`);
-            img.attr('title', `${app.dat.server_load_response.aws.s3_bucket_url}/pics/${file_item[3]}?rnd=${js.random_str(4)}`);
+            img.attr('alt', `${app.dat.server_load_response.aws.s3_bucket_url}/pic/${file_item[3]}?rnd=${js.random_str(4)}`);
+            img.attr('title', `${app.dat.server_load_response.aws.s3_bucket_url}/pic/${file_item[3]}?rnd=${js.random_str(4)}`);
             $(`#pic_boxes_wrapper div[slot_idx=${file_item[1]}] p`).hide();
             app.set_pic_status_idle_button(file_item[1], 'ok');
             img.fadeIn();
@@ -961,17 +970,30 @@ var app = {
         $progress.attr("progress", overall_percent + "%");
         $band.find(".upload_status").html(text + '...');
     },
+    animate_upload_status:($band, text, stages, stage, progress, end, on_complete)=>{
+        app.update_upload_status($band, text, stages, stage, Math.min(progress, end));
+        const proc = (end <= progress) ? ()=>{
+            setTimeout(() => {
+                on_complete();
+            }, 400);
+        } 
+            : ()=>{
+            setTimeout(() => {
+                app.animate_upload_status($band, text, stages, stage, progress + 10, end, on_complete);                
+            }, 100);
+        }
+        proc();
+    },
     init_drop_zone:(drop_zone)=>{
         const inputElement = $(drop_zone).find("input[type='file']")[0];
         const img = $(drop_zone).find("img")[0];
         const p = $(drop_zone).find("p")[0];
         const $thumb_loader = $(drop_zone).find(".img_thumb_loader");
         const load_file = (file)=>{
-            /*
-            app.uploadFileToS3('https://zapartonpics.s3.amazonaws.com/test.jpg?AWSAccessKeyId=AKIA56O6T2RPNPBPUROF&Policy=eyJleHBpcmF0aW9uIjoiMjAyMy0wOS0yMVQwODoxNDo0MS4wMTRaIiwiY29uZGl0aW9ucyI6W3siYnVja2V0IjoiemFwYXJ0b25waWNzIn0seyJrZXkiOiJ0ZXN0LmpwZyJ9LHsiYWNsIjoiUHV0T2JqZWN0In0seyJzdWNjZXNzX2FjdGlvbl9zdGF0dXMiOiIyMDEifV19&Signature=AACkSMoLn+uh0aMXSsogBtAk163Ie5lxXRq8FvcxNvM=', file);
-            //2
-return;
-*/
+
+            // app.uploadFileToS3('https://zapartonpics.s3.eu-central-1.amazonaws.com/pics/photo03.jpg?Content-Type=image%2Fjpeg&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA56O6T2RPLXPCPZ3A%2F20230923%2Feu-central-1%2Fs3%2Faws4_request&X-Amz-Date=20230923T144134Z&X-Amz-Expires=3600&X-Amz-Signature=ac164133a453e00319113a0159bbafeb0ae30efb38cdf4810e24dced7618fcb3&X-Amz-SignedHeaders=host', file);
+            //3
+// return;
             if (!file) return;
             $thumb_loader.fadeIn(()=>{
                 const $band = $(drop_zone).closest('.pic_band');
@@ -1012,7 +1034,8 @@ return;
                             }
                             app.update_pic_upload_status(file_inf.slot, 'uploading');
                             // file_inf.$pic_status.attr('pic_status', 'uploading')
-                            app.pic_mngr.clear_pic_space(file_inf, ()=>{
+                            app.pic_mngr.clear_pic_space(file_inf, (clear_response) => {
+                                file_inf.pre_signed_urls = clear_response.pre_signed_urls;
                                 app.dat.pics[file_inf.slot-1] = null;
                                 app.pic_mngr.upload_thumbnail(file_inf, ()=>{
                                     app.pic_mngr.upload_pic(file_inf, ()=>{
@@ -1122,41 +1145,7 @@ return;
         } else {
             app.init();
         }
-    },
-    uploadFileToS3:function(presignedUrl, file) {
-        const xhr = new XMLHttpRequest();
-        xhr.open('PUT', presignedUrl, true);
-      
-        xhr.onload = function () {
-          if (xhr.status === 200) {
-            console.log('File uploaded successfully');
-            // Handle success
-          } else {
-            console.error('Error uploading file:', xhr.statusText);
-            // Handle error
-          }
-        };
-      
-        xhr.onerror = function () {
-          console.error('Error uploading file:', xhr.statusText);
-          // Handle error
-        };
-      
-        // Track upload progress
-        /*
-        xhr.upload.onprogress = function (event) {
-          if (event.lengthComputable) {
-            const percentComplete = (event.loaded / event.total) * 100;
-            console.log(`Uploaded ${percentComplete.toFixed(2)}%`);
-            // Update progress bar or display progress to the user
-          }
-        };
-        */
-      
-        xhr.setRequestHeader('Content-Type', file.type);
-        xhr.send(file);
-      }
-          
+    }
 }
 
 $(app.start)
