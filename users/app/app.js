@@ -554,7 +554,8 @@ var app = {
             feedback_url: response.campaign[6],
             support_url: response.campaign[7],
             start_date: js.null_if_empty(response.campaign[8]),
-            end_date: js.null_if_empty(response.campaign[9])
+            end_date: js.null_if_empty(response.campaign[9]),
+            EXIF_required : response.campaign[10]
         } : null;
         window.localStorage.setObj("zaparton-user", app.dat.user);
         window.localStorage.setObj("zaparton-campaign", app.dat.campaign);
@@ -1031,6 +1032,11 @@ var app = {
                                 thumbnail: thumbnailImage,
                                 exif: EXIF.getAllTags(this),
                                 file:file
+                            }
+                            if (app.dat.campaign.EXIF_required && Object.keys(file_inf.exif).length === 0) {
+                                // app.pic_mngr.on_error_level_1(slot_idx, null, 'לא ניתן להעלות תמונה ללא <b>EXIF</b>. <a href="jvascript:void()">למידע נוסף</a>');
+                                app.pic_mngr.on_error_level_1(slot_idx, null, 'לא ניתן להעלות תמונה ללא <b>EXIF</b>');
+                                return;
                             }
                             app.update_pic_upload_status(file_inf.slot, 'uploading');
                             // file_inf.$pic_status.attr('pic_status', 'uploading')
