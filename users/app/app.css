@@ -1215,6 +1215,7 @@ body{
     cursor: pointer;
     background-size: 2.5em;
     text-align: right;
+    padding-left: 4em;
 }
 
 .pic_error:hover{

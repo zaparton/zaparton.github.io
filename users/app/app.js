@@ -1034,7 +1034,7 @@ var app = {
                                 file:file
                             }
                             if (app.dat.campaign.EXIF_required && Object.keys(file_inf.exif).length === 0) {
-                                app.pic_mngr.on_error_level_1(slot_idx, null, 'לא ניתן להעלות תמונה ללא <b>EXIF</b>. <a target="_blank" href="exif.html">למידע נוסף</a>');
+                                app.pic_mngr.on_error_level_1(slot_idx, null, 'לא ניתן להעלות תמונה ללא <b>EXIF</b>. <a style="white-space:nowrap;" target="_blank" href="exif.html">למידע נוסף</a>');
                                 return;
                             }
                             app.update_pic_upload_status(file_inf.slot, 'uploading');
