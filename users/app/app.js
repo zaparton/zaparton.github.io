@@ -268,7 +268,7 @@ var app = {
             };
             const callback = {
                 on_error_response: (error)=>{ 
-                    if (error?.code == 7 || error?.code == 8 || error?.code == 13) app.pic_mngr.on_error_level_1(file_inf.slot, error, error.desc); 
+                    if (error?.code == 7 || error?.code == 8 || error?.code == 13 || error?.code == 11) app.pic_mngr.on_error_level_1(file_inf.slot, error, error.desc); 
                     else app.pic_mngr.on_error_level_1(file_inf.slot, error); 
                 },
                 on_connect_error: (error)=>{ app.pic_mngr.on_error_level_1(file_inf.slot, error); },
@@ -798,7 +798,8 @@ var app = {
                     else app.pop_success('המידע נשמר בהצלחה');
                 },
                 on_error_response: (error)=>{
-                    app.pop_err('השרת מדווח על תקלה בביצוע הפעולה');
+                    if (error?.code == 9) app.pop_err(error.desc)
+                    else app.pop_err('השרת מדווח על תקלה בביצוע הפעולה');
                 }
             });
             }
