@@ -165,7 +165,7 @@ var app = {
         const ex_postdata = {
             is_mobile:js.is_mobile(),
             echo_idx:window.localStorage.getObj('zaparton-echo-idx'),
-            client_ver:2023092400
+            client_ver:2024092400
         };
         try{
             $.ajax({
@@ -430,13 +430,21 @@ var app = {
         if (status == 'idle') $pic_status.click(()=>{$dropzone.click()});
         else $pic_status.unbind('click');
     },
-    set_pic_status(slot, status_code){
+    set_pic_status(slot, status_code, info){
         const $pic_score_status = $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .frm_section_row[pic_contest_status]`);
         const contest_status = 
             (status_code == 1) ? 'filter_rejected' : 
             (status_code == 2) ? 'filter_quality_idle' : 
             (status_code == 3) ? 'filter_quality_rejected' : 
-            (status_code == 4) ? 'filter_score_idle' : 'filter_idle'; 
+            (status_code == 4) ? 'filter_score_idle' : 'filter_idle';
+        if  (status_code == 1) {
+            const s_reason = 
+                (info == 'DATE_INVALID') ? ' בגלל תאריך הצילום' :
+                (info == 'SIGNATURE') ? ' בגלל המצאות חתימת צלם' :
+                (info == 'EXIF_MISSING') ? ' בגלל שחסר מידע EXIF דרוש' :
+                (info == 'INAPPROPRIATE') ? ' בגלל תוכן לא ראוי' : null;
+            if (s_reason) $pic_score_status.find('.filter_rejected_reason').html(s_reason);
+        }
         $pic_score_status.attr('pic_contest_status', contest_status);
         $pic_score_status.css('display', 'flex');
         const $pic_score_actions = $(`#pic_boxes_wrapper .pic_band[slot_idx=${slot}] .pic_actions`);
@@ -497,7 +505,7 @@ var app = {
             $(`#pic_boxes_wrapper div[slot_idx=${file_item[1]}] p`).hide();
             app.set_pic_status_idle_button(file_item[1], 'ok');
             img.fadeIn();
-            app.set_pic_status(file_item[1], file_item[5]);
+            app.set_pic_status(file_item[1], file_item[5], file_item[14]);
             app.show_pic_mask(file_item[1], file_item[2], true);
             if (file_item[5] != '0') $("#sl_level").prop("disabled", true);
         }
@@ -846,12 +854,12 @@ var app = {
                 if (profile.email == '') page.set_validate_msg("#eb_profile_email", 'שדה חובה');
                     else if (!js.is_valid_email(profile.email)) page.set_validate_msg("#eb_profile_email", 'לא הצלחנו להבין את הכתובת הזאת', 2);
                 if (profile.birth_date == '') page.set_validate_msg("#eb_profile_birth", 'שדה חובה');
-                    else if (profile.birth_date < 1902 || profile.birth_date > 2023) page.set_validate_msg("#eb_profile_birth", 'שדה חובה');
+                    else if (profile.birth_date < 1902 || profile.birth_date > 2024) page.set_validate_msg("#eb_profile_birth", 'שדה חובה');
         
                 if (profile.phone == '') page.set_validate_msg("#eb_profile_phone", 'שדה חובה');
                     else if (!js.is_valid_phone(profile.phone)) page.set_validate_msg("#eb_profile_phone", 'לא הצלחנו להבין את המספר הזה', 2);
                 if (profile.level == '') page.set_validate_msg("#sl_level", 'שדה חובה');
-                if (profile.level == 'YOUTH' && parseInt(profile.birth_date) < 2006) page.set_validate_msg("#sl_level", 'מקצה נוער מיועד לבני 16 ומטה');
+                if (profile.level == 'YOUTH' && parseInt(profile.birth_date) < 2007) page.set_validate_msg("#sl_level", 'מקצה נוער מיועד לבני 16 ומטה');
         
                 if (app.is_new_user() && !$("#cb_kkl_terms").is(":checked")) page.set_validate_msg("#cb_kkl_terms", 'חובה לקרוא את התקנון ולהסכים לתנאיו', 1, $('#kkl_terms_error'));
             },
@@ -993,8 +1001,6 @@ var app = {
         const $thumb_loader = $(drop_zone).find(".img_thumb_loader");
         const load_file = (file)=>{
 
-            // app.uploadFileToS3('https://zapartonpics.s3.eu-central-1.amazonaws.com/pics/photo03.jpg?Content-Type=image%2Fjpeg&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA56O6T2RPLXPCPZ3A%2F20230923%2Feu-central-1%2Fs3%2Faws4_request&X-Amz-Date=20230923T144134Z&X-Amz-Expires=3600&X-Amz-Signature=ac164133a453e00319113a0159bbafeb0ae30efb38cdf4810e24dced7618fcb3&X-Amz-SignedHeaders=host', file);
-            //3
 // return;
             if (!file) return;
             $thumb_loader.fadeIn(()=>{

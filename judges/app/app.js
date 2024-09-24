@@ -280,10 +280,37 @@ var app = {
         if (last.length>0) $pic_wrapper.insertAfter(last);
         $pic_wrapper.slideDown();
     },
-    screening:($pic_wrapper, screen_act)=>{
+    screening_with_reason:($el, screen_act)=>{
+        $menu = $("#dv_screen_info_mask>div");
+        $("#dv_screen_info_mask").show();
+        $("body").addClass("no-scroll");
+        $("#dv_screen_info_mask").click(ev=>{
+            $("#dv_screen_info_mask").fadeOut();
+            $("body").removeClass("no-scroll");
+        });
+
+        var scrollTop = $(window).scrollTop();
+        var scrollLeft = $(window).scrollLeft();
+        var imgOffset = $el.offset();
+        var imgHeight = $el.outerHeight();
+        var imgWidth = $el.outerWidth();
+        var topPosition = Math.max(10, imgOffset.top - scrollTop + imgHeight - $menu.outerHeight());
+        var leftPosition = imgOffset.left - scrollLeft + imgWidth;
+        $menu.css({top: topPosition + 'px',left: leftPosition + 'px'});
+
+        $("#dv_screen_info_mask>div>input").off("click").on("click", ev=>{
+            app.screening($el.closest(".pic_wrapper"), screen_act, $(ev.target).attr("reason"))
+            var $pic_wrapper = $el.closest(".pic_wrapper");
+            $("#dv_screen_info_mask").fadeOut();
+            $("body").removeClass("no-scroll");
+
+        });
+    },
+    screening:($pic_wrapper, screen_act, screen_act_reason)=>{
         var post_data = {
             act_id: "screening",
             screen_act: screen_act,
+            screen_act_reason : screen_act_reason,
             uid: app.dat.user.uid,
             otp: app.dat.user.otp,
             campaign_sub_id: app.dat.campaign.sub_id,
@@ -382,7 +409,8 @@ var app = {
         $(html).appendTo($("#page_screening"));
         $("#page_screening .pic").off('click').click((ev)=>{window.open(`${app.dat.server_load_response.aws.s3_bucket_url}/pic/${$(ev.target).closest(".pic_wrapper").attr("file_name")}?rnd=${js.random_str(4)}`)});
         $("#page_screening .bt_accept").off('click').click((ev)=>{app.screening($(ev.target).closest(".pic_wrapper"), APP_GLOBAL.PIC_STATUS.SCREEN_ACCEPTED)});
-        $("#page_screening .bt_reject").off('click').click((ev)=>{app.screening($(ev.target).closest(".pic_wrapper"), APP_GLOBAL.PIC_STATUS.SCREEN_REJECTED)});
+        // $("#page_screening .bt_reject").off('click').click((ev)=>{app.screening($(ev.target).closest(".pic_wrapper"), APP_GLOBAL.PIC_STATUS.SCREEN_REJECTED)});
+        $("#page_screening .bt_reject").off('click').click((ev)=>{app.screening_with_reason($(ev.target), APP_GLOBAL.PIC_STATUS.SCREEN_REJECTED)});
 
         var html = ''
         $.each(app.dat.pics.to_quality_screen, (i, pic)=>{ 
@@ -498,7 +526,7 @@ var app = {
                     `"${app.dat.server_load_response.aws.s3_bucket_url}/pic/${pic_score.pic[2]}"`
                 ].join(","));
             });
-            js.downloadCSVFile(rows.join("\n"), app.dat.campaign.sub_title + " - 2023")
+            js.downloadCSVFile(rows.join("\n"), app.dat.campaign.sub_title + " - 2024")
         });
     },
     rebuild:(response)=>{

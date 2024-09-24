@@ -1098,3 +1098,20 @@ input[type="button"]{
 #bt_save_results:hover {
     transform: scale(1.1);
 }
+
+body.no-scroll {
+    overflow: hidden;
+}
+
+#dv_screen_info_mask>div>input{
+    font-size: 1.2em;
+    padding: 1em;
+}
+
+#dv_screen_info_mask>div>div {
+    font-size: 1.2em;
+    padding: 1em;
+    background-color: #404040;
+    color: white;
+    padding: 0.5em 1em;
+}

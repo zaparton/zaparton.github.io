@@ -1392,6 +1392,8 @@ input[type="button"]{
 }
 
 .frm_section_row[pic_contest_status=filter_rejected]>.pic_contest_status_filter_rejected{ 
+    direction: rtl;
+    text-align: right;
     display: block; 
 }
 
