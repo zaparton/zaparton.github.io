@@ -442,7 +442,8 @@ var app = {
                 (info == 'DATE_INVALID') ? ' בגלל תאריך הצילום' :
                 (info == 'SIGNATURE') ? ' בגלל המצאות חתימת צלם' :
                 (info == 'EXIF_MISSING') ? ' בגלל שחסר מידע EXIF דרוש' :
-                (info == 'INAPPROPRIATE') ? ' בגלל תוכן לא ראוי' : null;
+                (info == 'INAPPROPRIATE') ? ' בגלל תוכן לא מתאים' : 
+                (info == 'PLACE_INAVLID') ? ' בגלל מיקום הצילום' : null;
             if (s_reason) $pic_score_status.find('.filter_rejected_reason').html(s_reason);
         }
         $pic_score_status.attr('pic_contest_status', contest_status);
