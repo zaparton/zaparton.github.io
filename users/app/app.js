@@ -860,7 +860,7 @@ var app = {
                 if (profile.phone == '') page.set_validate_msg("#eb_profile_phone", 'שדה חובה');
                     else if (!js.is_valid_phone(profile.phone)) page.set_validate_msg("#eb_profile_phone", 'לא הצלחנו להבין את המספר הזה', 2);
                 if (profile.level == '') page.set_validate_msg("#sl_level", 'שדה חובה');
-                if (profile.level == 'YOUTH' && parseInt(profile.birth_date) < 2007) page.set_validate_msg("#sl_level", 'מקצה נוער מיועד לבני 16 ומטה');
+                if (profile.level == 'YOUTH' && parseInt(profile.birth_date) < 2009) page.set_validate_msg("#sl_level", 'מקצה נוער מיועד לבני 16 ומטה');
         
                 if (app.is_new_user() && !$("#cb_kkl_terms").is(":checked")) page.set_validate_msg("#cb_kkl_terms", 'חובה לקרוא את התקנון ולהסכים לתנאיו', 1, $('#kkl_terms_error'));
             },
