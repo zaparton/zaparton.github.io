@@ -526,7 +526,7 @@ var app = {
                     `"${app.dat.server_load_response.aws.s3_bucket_url}/pic/${pic_score.pic[2]}"`
                 ].join(","));
             });
-            js.downloadCSVFile(rows.join("\n"), app.dat.campaign.sub_title + " - 2024")
+            js.downloadCSVFile(rows.join("\n"), app.dat.campaign.sub_title + " - 2025")
         });
     },
     rebuild:(response)=>{
