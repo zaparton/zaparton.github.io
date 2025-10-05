@@ -1395,6 +1395,7 @@ input[type="button"]{
     direction: rtl;
     text-align: right;
     display: block; 
+    color: red;
 }
 
 .frm_section_row[pic_contest_status=filter_quality_idle]>.pic_contest_status_quality_idle{ 
@@ -1403,6 +1404,7 @@ input[type="button"]{
 
 .frm_section_row[pic_contest_status=filter_quality_rejected]>.pic_contest_status_quality_rejected{ 
     display: block; 
+    color: red;
 }
 
 .frm_section_row[pic_contest_status=filter_score_idle]>.pic_contest_status_score_idle{ 
