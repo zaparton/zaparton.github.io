@@ -254,7 +254,7 @@ var app = {
         app.dat.campaign_list = response.campaign_list;
         app.dat.active_campaign_count = 0;
         $.each(response.campaign_list, (i, campaign)=>{
-            app.dat.idx.campaign_by_id[campaign.sub_id] = campaign;
+                app.dat.idx.campaign_by_id[campaign.sub_id] = campaign;
         });
     },
     change_campaign:(campaign)=>{
@@ -265,7 +265,8 @@ var app = {
     build_campaign_menu:()=>{
         var html = ''
         $.each(app.dat.campaign_list, (i, campaign)=>{
-            html += `<div id="bt_campaign_${campaign.sub_id}" class="bt_campaign"><div></div>${campaign.sub_title}</div>`;
+            if (campaign.status == 'פתוח')
+                html += `<div id="bt_campaign_${campaign.sub_id}" class="bt_campaign"><div></div>${campaign.sub_title}</div>`;
         });
         $("#dv_campaign_menu_mask>div").html(html);
         $.each(app.dat.campaign_list, (i, campaign)=>{
