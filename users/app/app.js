@@ -26,6 +26,24 @@ var js = {
         const hy = (y==0) ? '' : 'אבגדהוזחטי'[y-1];
         return (y==0) ? `תש"${hd}` : `תש${hd}"${hy}`;
     },
+    isValidBirthYearRange:birthdateString=>{
+        if (!birthdateString) return false;
+        const year = new Date(birthdateString).getFullYear();
+        const currentYear = new Date().getFullYear();
+        return year >= (currentYear - 100) && year <= currentYear;
+    },
+    isOverSixteen:birthdateString=>{
+        if (!birthdateString) return false;
+        const birthDate = new Date(birthdateString);
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+        // אם חודש הלידה עוד לא הגיע השנה, או שאנחנו בחודש הלידה אך היום עוד לא הגיע - מורידים שנה
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+        return age >= 16;
+    },
     is_valid_email : s=> {
         if (!s) return false;
         var emailReg = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,6})?$/;
@@ -854,13 +872,12 @@ var app = {
                 if (profile.name == '') page.set_validate_msg("#eb_profile_name", 'שדה חובה');
                 if (profile.email == '') page.set_validate_msg("#eb_profile_email", 'שדה חובה');
                     else if (!js.is_valid_email(profile.email)) page.set_validate_msg("#eb_profile_email", 'לא הצלחנו להבין את הכתובת הזאת', 2);
-                if (profile.birth_date == '') page.set_validate_msg("#eb_profile_birth", 'שדה חובה');
-                    else if (profile.birth_date < 1902 || profile.birth_date > 2026) page.set_validate_msg("#eb_profile_birth", 'שדה חובה');
+                if (!js.isValidBirthYearRange(profile.birth_date)) page.set_validate_msg("#eb_profile_birth", 'שדה חובה');
         
                 if (profile.phone == '') page.set_validate_msg("#eb_profile_phone", 'שדה חובה');
                     else if (!js.is_valid_phone(profile.phone)) page.set_validate_msg("#eb_profile_phone", 'לא הצלחנו להבין את המספר הזה', 2);
                 if (profile.level == '') page.set_validate_msg("#sl_level", 'שדה חובה');
-                if (profile.level == 'YOUTH' && parseInt(profile.birth_date) < 2010) page.set_validate_msg("#sl_level", 'מקצה נוער מיועד לבני 16 ומטה');
+                if (profile.level == 'YOUTH' && js.isOverSixteen(profile.birth_date)) page.set_validate_msg("#sl_level", 'מקצה נוער מיועד לבני 16 ומטה');
         
                 if (app.is_new_user() && !$("#cb_kkl_terms").is(":checked")) page.set_validate_msg("#cb_kkl_terms", 'חובה לקרוא את התקנון ולהסכים לתנאיו', 1, $('#kkl_terms_error'));
             },
