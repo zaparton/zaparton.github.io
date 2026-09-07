@@ -35,11 +35,11 @@ var js = {
     isOverSixteen:birthdateString=>{
         if (!birthdateString) return false;
         const birthDate = new Date(birthdateString);
-        const today = new Date();
-        let age = today.getFullYear() - birthDate.getFullYear();
-        const monthDiff = today.getMonth() - birthDate.getMonth();
+        const dt = new Date('2026-09-27');
+        let age = dt.getFullYear() - birthDate.getFullYear();
+        const monthDiff = dt.getMonth() - birthDate.getMonth();
         // אם חודש הלידה עוד לא הגיע השנה, או שאנחנו בחודש הלידה אך היום עוד לא הגיע - מורידים שנה
-        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        if (monthDiff < 0 || (monthDiff === 0 && dt.getDate() < birthDate.getDate())) {
             age--;
         }
         return age >= 16;
