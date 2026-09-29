@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>צפרתון 2026 - תמונות לניקוד</title>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts - Rubik -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Rubik', 'sans-serif'],
+                    },
+                    colors: {
+                        darkBg: '#0f172a',
+                        cardBg: 'rgba(30, 41, 59, 0.7)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0b0f19;
+            color: #f8fafc;
+            font-family: 'Rubik', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Glassmorphism effects */
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-btn {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.25s ease;
+        }
+
+        .glass-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: scale(1.05);
+        }
+
+        .glass-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+
+        /* Card hover animation */
+        .img-card {
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.35s ease, border-color 0.35s ease;
+        }
+        .img-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
+            border-color: rgba(99, 102, 241, 0.4);
+        }
+
+        /* Lightbox Modal Animations */
+        #lightboxModal {
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        #lightboxModal.hidden-modal {
+            opacity: 0;
+            pointer-events: none;
+            visibility: hidden;
+        }
+        #lightboxModal.active-modal {
+            opacity: 1;
+            pointer-events: auto;
+            visibility: visible;
+        }
+
+        .lightbox-img-container {
+            transition: transform 0.25s ease-in-out, opacity 0.25s ease-in-out;
+        }
+        .lightbox-img-container.sliding {
+            opacity: 0.3;
+            transform: scale(0.96);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
+
+    <header class="sticky top-0 z-30 glass-panel border-b border-slate-800/80 px-4 py-4 md:px-8">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="p-2.5 bg-gradient-to-tr from-indigo-600 to-violet-500 rounded-xl shadow-lg shadow-indigo-500/30">
+                    <i class="fa-solid font-bold fa-images text-xl text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
+                        צפרתון 2026 - מקצה בוגרים
+                    </h1>
+                    <p class="text-xs text-slate-400">תמונות שעברו סינון ועומדות לקראת ניקוד שופטים</p>
+                </div>
+            </div>
+
+            <!-- Stats Badge -->
+            <div class="flex items-center gap-2 text-xs font-medium text-slate-300 bg-slate-800/80 px-3 py-1.5 rounded-full border border-slate-700/50">
+                <i class="fa-solid fa-photo-film text-indigo-400"></i>
+                <span>סה"כ תמונות:</span>
+                <span id="totalPhotosCount" class="font-bold text-indigo-400">0</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl w-full mx-auto px-4 py-8 md:px-8 flex-grow">
+        <!-- Gallery Grid -->
+        <div id="galleryGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            <!-- Dynamic elements loaded via JS -->
+        </div>
+    </main>
+
+    <div id="lightboxModal" class="hidden-modal fixed inset-0 z-50 flex items-center justify-center bg-black/92 backdrop-blur-md p-2 sm:p-4 select-none">
+        
+        <!-- Top Toolbar -->
+        <div class="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-20 bg-gradient-to-b from-black/80 to-transparent">
+            <!-- Counter -->
+            <div class="text-white/90 font-medium text-sm md:text-base glass-btn px-3.5 py-1.5 rounded-full">
+                <span id="lightboxCounter">1 / 1</span>
+            </div>
+            
+            <!-- Close Button -->
+            <button id="closeBtn" aria-label="סגור תמונה" class="glass-btn text-white text-xl w-10 h-10 rounded-full flex items-center justify-center focus:outline-none">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <button id="prevBtn" aria-label="הקודם" class="glass-btn absolute left-3 md:left-6 text-white text-xl md:text-2xl w-12 h-12 rounded-full flex items-center justify-center z-20 focus:outline-none">
+            <i class="fa-solid fa-chevron-left"></i>
+        </button>
+
+        <button id="nextBtn" aria-label="הבא" class="glass-btn absolute right-3 md:right-6 text-white text-xl md:text-2xl w-12 h-12 rounded-full flex items-center justify-center z-20 focus:outline-none">
+            <i class="fa-solid fa-chevron-right"></i>
+        </button>
+
+        <!-- Image Wrapper -->
+        <div class="relative max-w-5xl max-h-[85vh] w-full h-full flex items-center justify-center p-2">
+            <div id="imageWrapper" class="lightbox-img-container flex items-center justify-center max-w-full max-h-full">
+                <img id="lightboxImage" src="" alt="תמונה מורחבת" class="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl transition-all duration-300">
+            </div>
+        </div>
+
+        <!-- Touch Swipe Tip -->
+        <div class="absolute bottom-4 left-1/2 -translate-x-1/2 text-xs text-white/50 bg-black/50 px-3 py-1 rounded-full md:hidden pointer-events-none">
+            <i class="fa-solid fa-hand-pointer ml-1"></i> החלק ימינה / שמאלה לדפדוף
+        </div>
+    </div>
+
+    <script>
+        /**
+         * הגדרות נתיב ושמות קבצים
+         * כעת המערך כולל שילוב של תמונות לאורך (Portrait) ולרוחב (Landscape) לבדיקה.
+         */
+        const BASE_PATH = 'https://zapartonpics.s3.eu-central-1.amazonaws.com/pic/';
+
+        // מדגם קבצי תמונות (ניתן להחליף בקבצים שלך: 'pic1.jpg', 'pic2.jpg' וכו')
+        const IMAGE_FILES = [
+'22121.jpg',
+'24502.jpg',
+'24601.jpg',
+'24602.jpg',
+'24603.jpg',
+'24261.jpg',
+'24262.jpg',
+'24263.jpg',
+'21941.jpg',
+'21942.jpg',
+'21943.jpg',
+'23731.jpg',
+'23732.jpg',
+'23733.jpg',
+'24671.jpg',
+'24672.jpg',
+'23831.jpg',
+'24231.jpg',
+'24232.jpg',
+'24233.jpg',
+'22061.jpg',
+'22062.jpg',
+'22063.jpg',
+'23301.jpg',
+'23302.jpg',
+'24711.jpg',
+'24721.jpg',
+'22122.jpg',
+'23121.jpg',
+'23122.jpg',
+'23123.jpg',
+'24742.jpeg',
+'24741.jpeg',
+'24743.jpeg',
+'23681.jpg',
+'23682.jpg',
+'23683.jpg',
+'23171.jpg',
+'23172.jpg',
+'23173.jpg',
+'24551.jpg',
+'24552.jpg',
+'22341.jpg',
+'22342.jpg',
+'23741.jpg',
+'23742.jpg',
+'23743.jpg',
+'22731.jpg',
+'22732.jpg',
+'22733.jpg',
+'22961.jpg',
+'22962.jpg',
+'22963.jpg',
+'24071.jpg',
+'24072.jpg',
+'24073.jpg',
+'24821.jpg',
+'24822.jpg',
+'24823.jpg',
+'22411.jpeg',
+'24553.jpg',
+'22811.jpeg',
+'22812.jpeg',
+'22813.jpeg',
+'22412.jpeg',
+'24722.jpg',
+'24723.jpg',
+'23601.jpeg',
+'23602.jpeg',
+'23603.jpeg',
+'21871.jpg',
+'21872.jpg',
+'21873.jpg',
+'21841.jpg',
+'21842.jpg',
+'21843.jpg',
+'22451.jpg',
+'22452.jpg',
+'22453.jpg',
+'22791.jpg',
+'22793.jpg',
+'21851.jpeg',
+'21852.jpeg',
+'21853.jpeg',
+'24441.jpg',
+'24442.jpg',
+'24443.jpg',
+'24873.jpg',
+'21731.jpg',
+'21732.jpg',
+'21733.jpg',
+'24712.jpg',
+'24713.jpg',
+'23291.jpg',
+'23292.jpg',
+'23293.jpg',
+'21701.jpg',
+'22742.jpg',
+'22743.jpg',
+'21702.jpg',
+'24891.jpg',
+'24892.jpg',
+'21703.jpg',
+'22072.jpeg',
+'22071.jpeg',
+'22073.jpeg',
+'24033.jpg',
+'24032.jpg',
+'24031.jpg',
+'24913.jpg',
+'23751.jpg',
+'23752.jpg',
+'23753.jpg',
+'21641.jpg',
+'21642.jpg',
+'21643.jpg',
+'24921.jpg',
+'24922.jpg',
+'22891.jpg',
+'22893.jpg',
+'22381.jpg',
+'22892.jpg',
+'22382.jpg',
+'22383.jpg',
+'22432.jpg',
+'22433.jpg',
+'24923.jpg',
+'22991.jpg',
+'22992.jpg',
+'22993.jpg',
+'24931.jpg',
+'22861.jpg',
+'22862.jpg',
+'24932.jpg',
+'24933.jpg',
+'21991.jpg',
+'22863.jpg',
+'23961.jpg',
+'23962.jpg',
+'23963.jpg',
+'23182.jpg',
+'23181.jpg',
+'23183.jpg',
+'22431.jpg',
+'24951.jpg',
+'24952.jpg',
+'24953.jpg',
+'21711.jpg',
+'21712.jpg',
+'21713.jpg',
+'21781.jpg',
+'21783.jpg',
+'22001.jpg',
+'22002.jpg',
+'22003.jpg',
+'22241.jpg',
+'22242.jpg',
+'22243.jpg',
+'24981.jpg',
+'24982.jpg',
+'24983.jpg',
+'23832.jpg',
+'23833.jpg',
+'23621.jpg',
+'23623.jpg',
+'23622.jpg',
+'22041.jpg',
+'22042.jpg',
+'22123.jpg',
+'22043.jpg',
+'23161.jpeg',
+'23162.jpeg',
+'23163.jpeg',
+'22141.jpeg',
+'23303.jpg',
+'22142.jpeg',
+'23531.jpg',
+'23111.jpg',
+'22143.jpeg',
+'23112.jpg',
+'23532.jpg',
+'23113.jpg',
+'23533.jpg',
+'22312.jpg',
+'24991.jpg',
+'22313.jpg',
+'24992.jpg',
+'24993.jpg',
+'22311.jpg',
+'21681.jpeg',
+'21682.jpeg',
+'21683.jpeg',
+'23201.jpg',
+'23202.jpg',
+'23203.jpg',
+'23431.jpg',
+'23432.jpg',
+'23433.jpg',
+'22481.jpg',
+'22482.jpg',
+'22483.jpg',
+'22771.jpg',
+'22772.jpg',
+'22773.jpg',
+'25011.jpg',
+'25012.jpg',
+'22301.jpg',
+'22302.jpg',
+'22303.jpg',
+'25031.jpg',
+'25041.jpeg',
+'25032.jpg',
+'25033.jpg',
+'22871.jpg',
+'22872.jpg',
+'25051.jpg',
+'22873.jpg',
+'25052.jpg',
+'25053.jpg',
+'22081.jpg',
+'22082.jpg',
+'22083.jpg',
+'21751.jpg',
+'21752.jpg',
+'21753.jpg',
+'22021.jpg',
+'22022.jpg',
+'25042.jpeg',
+'25061.jpg',
+'23281.jpg',
+'23282.jpg',
+'25062.jpg',
+'23283.jpg',
+'25063.jpg',
+'21911.jpg',
+'25081.jpg',
+'21912.jpg',
+'21913.jpg',
+'25082.jpg',
+'25083.jpg',
+'22291.jpg',
+'22292.jpg',
+'22293.jpg',
+'25043.jpeg',
+'24051.jpg',
+'24052.jpg',
+'24053.jpg',
+'22561.jpg',
+'22562.jpg',
+'22563.jpg',
+'24151.jpg',
+'24152.jpg',
+'24153.jpg',
+'24281.jpg',
+'24282.jpg',
+'24283.jpg',
+'23321.jpg',
+'23322.jpg',
+'22781.jpg',
+'22782.jpg',
+'22783.jpg',
+'22531.jpg',
+'22532.jpg',
+'24471.jpg',
+'24472.jpg',
+'24581.jpg',
+'23323.jpg',
+'24582.jpg',
+'24321.jpg',
+'24322.jpg',
+'24323.jpg',
+'24473.jpg',
+'24583.jpg',
+'23472.jpg',
+'23471.jpg',
+'23473.jpg',
+'22761.jpg',
+'24341.jpg',
+'24241.jpg',
+'24242.jpg',
+'22762.jpg',
+'24243.jpg',
+'24571.jpg',
+'22763.jpg',
+'23271.jpg',
+'23272.jpg',
+'23273.jpg',
+'24342.jpg',
+'22521.jpg',
+'22522.jpg',
+'22523.jpg',
+'24343.jpg',
+'24572.jpg',
+'24573.jpg',
+'22661.jpg',
+'22662.jpg',
+'22663.jpg',
+'22533.jpg',
+'22131.jpg',
+'22132.jpg',
+'22133.jpg',
+'24061.jpg',
+'24062.jpg',
+'24063.jpg',
+'21761.jpg',
+'22911.jpg',
+'24961.jpg',
+'24962.jpg',
+'24301.jpg',
+'24302.jpg',
+'22912.jpg',
+'22901.jpg',
+'22902.jpg',
+'22903.jpg',
+'24291.jpg',
+'21762.jpg',
+'24292.jpg',
+'22913.jpg',
+'24293.jpg',
+'23491.jpg',
+'23492.jpg',
+'23493.jpg',
+'21763.jpg',
+'24791.jpg',
+'24792.jpg',
+'24793.jpg',
+'22471.jpeg',
+'22472.jpeg',
+'22473.jpeg',
+'24661.jpg',
+'23391.jpg',
+'24662.jpg',
+'23392.jpg',
+'24663.jpg',
+'23393.jpg',
+'23351.jpg',
+'23352.jpg',
+'23353.jpg',
+'21992.jpg',
+'21993.jpg',
+'23811.jpg',
+'23813.jpg',
+'23812.jpg',
+'22111.jpg',
+'22112.jpg',
+'22113.jpg',
+'21811.jpg',
+'21812.jpg',
+'21813.jpg',
+'23091.jpg',
+'23092.jpg',
+'23093.jpg',
+'22581.jpg',
+'23541.jpg',
+'24701.jpg',
+'24702.jpg',
+'22582.jpg',
+'22221.jpg',
+'23542.jpg',
+'23862.jpg',
+'23543.jpg',
+'23863.jpg',
+'22222.jpg',
+'22921.jpg',
+'22923.jpg',
+'22841.jpg',
+'22842.jpg',
+'22843.jpg',
+'24703.jpg',
+'25111.jpg',
+'21921.jpg',
+'22223.jpg',
+'21922.jpg',
+'21923.jpg',
+'23941.jpg',
+'23943.jpg',
+'22281.jpg',
+'22282.jpg',
+'22283.jpg',
+'25131.jpeg',
+'25132.jpeg',
+'25133.jpeg',
+'24901.jpg',
+'24201.jpg',
+'24902.jpg',
+'24903.jpg',
+'23381.jpg',
+'24202.jpg',
+'24203.jpg'
+];
+
+
+        // משתני מצב
+        let currentIndex = 0;
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        // אלמנטים
+        const galleryGrid = document.getElementById('galleryGrid');
+        const totalPhotosCount = document.getElementById('totalPhotosCount');
+        const lightboxModal = document.getElementById('lightboxModal');
+        const lightboxImage = document.getElementById('lightboxImage');
+        const lightboxCounter = document.getElementById('lightboxCounter');
+        const imageWrapper = document.getElementById('imageWrapper');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const closeBtn = document.getElementById('closeBtn');
+
+        /**
+         * יצירת גלריית ה-Thumbnails עם התאמה מלאה למציג התמונה ללא חיתוך
+         */
+        function initGallery() {
+            totalPhotosCount.textContent = IMAGE_FILES.length;
+            galleryGrid.innerHTML = '';
+
+            IMAGE_FILES.forEach((fileName, index) => {
+                const fullUrl = BASE_PATH + fileName;
+                
+                const card = document.createElement('div');
+                card.className = 'img-card glass-panel rounded-2xl overflow-hidden cursor-pointer group flex flex-col justify-between border border-slate-700/50';
+                card.onclick = () => openLightbox(index);
+
+                // שימוש ב-object-contain ורקע כהה מבטיח שכל התמונה מוצגת מבלי להיחתך
+                card.innerHTML = `
+                    <div class="relative aspect-square w-full bg-slate-900/90 flex items-center justify-center overflow-hidden p-2">
+                        <!-- Blur Background Shadow Effect -->
+                        <img 
+                            src="${fullUrl}" 
+                            alt=""
+                            class="absolute inset-0 w-full h-full object-cover opacity-25 blur-md scale-110 pointer-events-none"
+                        />
+                        <!-- Main Image Fully Contained -->
+                        <img 
+                            src="${fullUrl}" 
+                            alt="תמונה ${index + 1}" 
+                            loading="lazy"
+                            class="relative z-10 max-w-full max-h-full object-contain rounded transition-transform duration-300 group-hover:scale-105"
+                            onerror="this.onerror=null; this.src='https://placehold.co/600x600/1e293b/ffffff?text=שגיאה+בטעינה';"
+                        />
+                        <!-- Hover Overlay -->
+                        <div class="absolute inset-0 z-20 bg-indigo-950/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center p-3">
+                            <span class="text-white text-xs font-medium flex items-center gap-1.5 bg-indigo-600/80 px-3 py-1 rounded-full backdrop-blur-sm">
+                                <i class="fa-solid fa-magnifying-glass-plus"></i> הגדל
+                            </span>
+                        </div>
+                    </div>
+                    <div class="p-3 bg-slate-900/60 border-t border-slate-800 flex justify-between items-center text-xs text-slate-400">
+                        <span class="font-medium text-slate-300">תמונה #${index + 1}</span>
+                        <i class="fa-regular fa-image text-slate-500"></i>
+                    </div>
+                `;
+
+                galleryGrid.appendChild(card);
+            });
+        }
+
+        function openLightbox(index) {
+            currentIndex = index;
+            updateLightboxContent();
+            lightboxModal.classList.remove('hidden-modal');
+            lightboxModal.classList.add('active-modal');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+            lightboxModal.classList.remove('active-modal');
+            lightboxModal.classList.add('hidden-modal');
+            document.body.style.overflow = '';
+        }
+
+        function updateLightboxContent() {
+            imageWrapper.classList.add('sliding');
+            setTimeout(() => {
+                const fullUrl = BASE_PATH + IMAGE_FILES[currentIndex];
+                lightboxImage.src = fullUrl;
+                lightboxCounter.textContent = `${currentIndex + 1} / ${IMAGE_FILES.length}`;
+                imageWrapper.classList.remove('sliding');
+            }, 150);
+        }
+
+        function nextImage() {
+            currentIndex = (currentIndex < IMAGE_FILES.length - 1) ? currentIndex + 1 : 0;
+            updateLightboxContent();
+        }
+
+        function prevImage() {
+            currentIndex = (currentIndex > 0) ? currentIndex - 1 : IMAGE_FILES.length - 1;
+            updateLightboxContent();
+        }
+
+        // אירועי לחיצה
+        nextBtn.addEventListener('click', (e) => { e.stopPropagation(); nextImage(); });
+        prevBtn.addEventListener('click', (e) => { e.stopPropagation(); prevImage(); });
+        closeBtn.addEventListener('click', closeLightbox);
+
+        lightboxModal.addEventListener('click', (e) => {
+            if (e.target === lightboxModal || e.target === imageWrapper) {
+                closeLightbox();
+            }
+        });
+
+        // מקלדת
+        document.addEventListener('keydown', (e) => {
+            if (!lightboxModal.classList.contains('active-modal')) return;
+            if (e.key === 'Escape') closeLightbox();
+            else if (e.key === 'ArrowRight') prevImage();
+            else if (e.key === 'ArrowLeft') nextImage();
+        });
+
+        // Swipe מגע במובייל
+        lightboxModal.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+
+        lightboxModal.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, { passive: true });
+
+        function handleSwipe() {
+            const diff = touchEndX - touchStartX;
+            if (Math.abs(diff) > 50) {
+                if (diff < 0) nextImage();
+                else prevImage();
+            }
+        }
+
+        window.onload = initGallery;
+    </script>
+</body>
+</html>
