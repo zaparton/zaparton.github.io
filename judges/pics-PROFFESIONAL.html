@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>צפרתון 2026 - תמונות לניקוד</title>
+    <title>צפרתון 2026 - מקצה בוגרים</title>
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts - Rubik -->
@@ -107,6 +107,20 @@
             opacity: 0.3;
             transform: scale(0.96);
         }
+
+        /* Spinner Animation */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-left-color: #6366f1;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            animation: spin 0.8s linear infinite;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
@@ -157,16 +171,23 @@
         </div>
 
         <!-- Navigation Buttons -->
-        <button id="prevBtn" aria-label="הקודם" class="glass-btn absolute left-3 md:left-6 text-white text-xl md:text-2xl w-12 h-12 rounded-full flex items-center justify-center z-20 focus:outline-none">
-            <i class="fa-solid fa-chevron-left"></i>
+        <!-- In RTL context: Left arrow moves to Next image, Right arrow moves to Previous image -->
+        <button id="prevBtn" aria-label="הקודם" class="glass-btn absolute right-3 md:right-6 text-white text-xl md:text-2xl w-12 h-12 rounded-full flex items-center justify-center z-20 focus:outline-none">
+            <i class="fa-solid fa-chevron-right"></i>
         </button>
 
-        <button id="nextBtn" aria-label="הבא" class="glass-btn absolute right-3 md:right-6 text-white text-xl md:text-2xl w-12 h-12 rounded-full flex items-center justify-center z-20 focus:outline-none">
-            <i class="fa-solid fa-chevron-right"></i>
+        <button id="nextBtn" aria-label="הבא" class="glass-btn absolute left-3 md:left-6 text-white text-xl md:text-2xl w-12 h-12 rounded-full flex items-center justify-center z-20 focus:outline-none">
+            <i class="fa-solid fa-chevron-left"></i>
         </button>
 
         <!-- Image Wrapper -->
         <div class="relative max-w-5xl max-h-[85vh] w-full h-full flex items-center justify-center p-2">
+            <!-- Loading Spinner -->
+            <div id="imageLoader" class="absolute hidden flex-col items-center justify-center gap-2 text-indigo-400 z-10">
+                <div class="spinner"></div>
+                <span class="text-xs text-slate-300">טוען תמונה מקורית...</span>
+            </div>
+
             <div id="imageWrapper" class="lightbox-img-container flex items-center justify-center max-w-full max-h-full">
                 <img id="lightboxImage" src="" alt="תמונה מורחבת" class="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl transition-all duration-300">
             </div>
@@ -178,14 +199,18 @@
         </div>
     </div>
 
+    <footer class="border-t border-slate-800/80 py-6 text-center text-slate-500 text-sm glass-panel mt-12">
+    </footer>
+
     <script>
         /**
-         * הגדרות נתיב ושמות קבצים
-         * כעת המערך כולל שילוב של תמונות לאורך (Portrait) ולרוחב (Landscape) לבדיקה.
+         * הגדרת נתיבים ושמות הקבצים
+         * - BASE_PATH: נתיב הבסיס הראשי
+         * - IMAGE_FILES: שמות קבצי התמונות המקוריות (יכולות להסתיים ב-JPEG, JPG, jpeg, jpg)
          */
-        const BASE_PATH = 'https://zapartonpics.s3.eu-central-1.amazonaws.com/pic/';
+        const BASE_PATH = 'https://picsum.photos/'; // דוגמה ל-Base Path. החלף בנתיב שלך (למשל 'http://my-domain.com/gallery/')
 
-        // מדגם קבצי תמונות (ניתן להחליף בקבצים שלך: 'pic1.jpg', 'pic2.jpg' וכו')
+        // דוגמה למערך שמות הקבצים כפי שביקשת (עם סיומות מגוונות)
         const IMAGE_FILES = [
 '22121.jpg',
 '24502.jpg',
@@ -633,8 +658,30 @@
 '23312.jpg',
 '23313.jpg',
 '23311.jpg'
-];
+        ];
 
+        /**
+         * פונקציית עזר להמרת שם הקובץ לשם צלמית עם סיומת jpg תחתונה בלבד
+         */
+        function getThumbnailName(filename) {
+            return filename.replace(/\.(jpeg|jpg)$/i, '.jpg');
+        }
+
+        /**
+         * בונה את ה-URL לצלמית מתוך תקיית tn/
+         */
+        function getThumbnailUrl(filename) {
+            const cleanBasePath = BASE_PATH.endsWith('/') ? BASE_PATH : BASE_PATH + '/';
+            return `${cleanBasePath}tn/${getThumbnailName(filename)}`;
+        }
+
+        /**
+         * בונה את ה-URL לתמונה המקורית מתוך תקיית pic/
+         */
+        function getFullImageUrl(filename) {
+            const cleanBasePath = BASE_PATH.endsWith('/') ? BASE_PATH : BASE_PATH + '/';
+            return `${cleanBasePath}pic/${filename}`;
+        }
 
         // משתני מצב
         let currentIndex = 0;
@@ -648,51 +695,51 @@
         const lightboxImage = document.getElementById('lightboxImage');
         const lightboxCounter = document.getElementById('lightboxCounter');
         const imageWrapper = document.getElementById('imageWrapper');
+        const imageLoader = document.getElementById('imageLoader');
         const prevBtn = document.getElementById('prevBtn');
         const nextBtn = document.getElementById('nextBtn');
         const closeBtn = document.getElementById('closeBtn');
 
         /**
-         * יצירת גלריית ה-Thumbnails עם התאמה מלאה למציג התמונה ללא חיתוך
+         * טעינה ראשונית של הגלריה עם הצלמיות בלבד
          */
         function initGallery() {
             totalPhotosCount.textContent = IMAGE_FILES.length;
             galleryGrid.innerHTML = '';
 
             IMAGE_FILES.forEach((fileName, index) => {
-                const fullUrl = BASE_PATH + fileName;
+                const thumbnailUrl = getThumbnailUrl(fileName);
                 
                 const card = document.createElement('div');
                 card.className = 'img-card glass-panel rounded-2xl overflow-hidden cursor-pointer group flex flex-col justify-between border border-slate-700/50';
                 card.onclick = () => openLightbox(index);
 
-                // שימוש ב-object-contain ורקע כהה מבטיח שכל התמונה מוצגת מבלי להיחתך
                 card.innerHTML = `
                     <div class="relative aspect-square w-full bg-slate-900/90 flex items-center justify-center overflow-hidden p-2">
-                        <!-- Blur Background Shadow Effect -->
+                        <!-- Background Blur Effect -->
                         <img 
-                            src="${fullUrl}" 
+                            src="${thumbnailUrl}" 
                             alt=""
-                            class="absolute inset-0 w-full h-full object-cover opacity-25 blur-md scale-110 pointer-events-none"
+                            class="absolute inset-0 w-full h-full object-cover opacity-20 blur-md scale-110 pointer-events-none"
                         />
-                        <!-- Main Image Fully Contained -->
+                        <!-- Thumbnail Image (object-contain ensures portrait & landscape full view) -->
                         <img 
-                            src="${fullUrl}" 
-                            alt="תמונה ${index + 1}" 
+                            src="${thumbnailUrl}" 
+                            alt="צלמית תמונה ${index + 1}" 
                             loading="lazy"
                             class="relative z-10 max-w-full max-h-full object-contain rounded transition-transform duration-300 group-hover:scale-105"
-                            onerror="this.onerror=null; this.src='https://placehold.co/600x600/1e293b/ffffff?text=שגיאה+בטעינה';"
+                            onerror="this.onerror=null; this.src='https://placehold.co/400x400/1e293b/ffffff?text=צלמית+חסרה';"
                         />
                         <!-- Hover Overlay -->
                         <div class="absolute inset-0 z-20 bg-indigo-950/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center p-3">
-                            <span class="text-white text-xs font-medium flex items-center gap-1.5 bg-indigo-600/80 px-3 py-1 rounded-full backdrop-blur-sm">
-                                <i class="fa-solid fa-magnifying-glass-plus"></i> הגדל
+                            <span class="text-white text-xs font-medium flex items-center gap-1.5 bg-indigo-600/80 px-3 py-1 rounded-full backdrop-blur-sm shadow-md">
+                                <i class="fa-solid fa-expand"></i> פתח תמונה מקורית
                             </span>
                         </div>
                     </div>
                     <div class="p-3 bg-slate-900/60 border-t border-slate-800 flex justify-between items-center text-xs text-slate-400">
                         <span class="font-medium text-slate-300">תמונה #${index + 1}</span>
-                        <i class="fa-regular fa-image text-slate-500"></i>
+                        <span class="text-[10px] text-slate-500 font-mono">${fileName.split('.').pop()}</span>
                     </div>
                 `;
 
@@ -700,6 +747,9 @@
             });
         }
 
+        /**
+         * פתיחת המודאל וטעינת התמונה המקורית
+         */
         function openLightbox(index) {
             currentIndex = index;
             updateLightboxContent();
@@ -714,14 +764,54 @@
             document.body.style.overflow = '';
         }
 
+        /**
+         * עדכון התמונה במודאל + Preload לתמונות הבאות והקודמות
+         */
         function updateLightboxContent() {
             imageWrapper.classList.add('sliding');
+            imageLoader.classList.remove('hidden');
+            imageLoader.classList.add('flex');
+
             setTimeout(() => {
-                const fullUrl = BASE_PATH + IMAGE_FILES[currentIndex];
-                lightboxImage.src = fullUrl;
+                const fullImageUrl = getFullImageUrl(IMAGE_FILES[currentIndex]);
+                
+                // יצירת אובייקט Image לטעינה חלקה
+                const imgLoader = new Image();
+                imgLoader.src = fullImageUrl;
+                
+                imgLoader.onload = () => {
+                    lightboxImage.src = fullImageUrl;
+                    imageLoader.classList.add('hidden');
+                    imageLoader.classList.remove('flex');
+                    imageWrapper.classList.remove('sliding');
+                };
+
+                imgLoader.onerror = () => {
+                    lightboxImage.src = 'https://placehold.co/800x600/1e293b/ffffff?text=שגיאה+בטעינת+תמונה+מקורית';
+                    imageLoader.classList.add('hidden');
+                    imageLoader.classList.remove('flex');
+                    imageWrapper.classList.remove('sliding');
+                };
+
                 lightboxCounter.textContent = `${currentIndex + 1} / ${IMAGE_FILES.length}`;
-                imageWrapper.classList.remove('sliding');
-            }, 150);
+
+                // Preload תמונות סמוכות לחוויית משתמש מהירה
+                preloadAdjacentImages();
+            }, 120);
+        }
+
+        /**
+         * טעינה מוקדמת ברקע של התמונה הבאה והקודמת
+         */
+        function preloadAdjacentImages() {
+            const nextIdx = (currentIndex < IMAGE_FILES.length - 1) ? currentIndex + 1 : 0;
+            const prevIdx = (currentIndex > 0) ? currentIndex - 1 : IMAGE_FILES.length - 1;
+
+            const imgNext = new Image();
+            imgNext.src = getFullImageUrl(IMAGE_FILES[nextIdx]);
+
+            const imgPrev = new Image();
+            imgPrev.src = getFullImageUrl(IMAGE_FILES[prevIdx]);
         }
 
         function nextImage() {
@@ -734,7 +824,7 @@
             updateLightboxContent();
         }
 
-        // אירועי לחיצה
+        // אירועי לחיצה על כפתורים
         nextBtn.addEventListener('click', (e) => { e.stopPropagation(); nextImage(); });
         prevBtn.addEventListener('click', (e) => { e.stopPropagation(); prevImage(); });
         closeBtn.addEventListener('click', closeLightbox);
@@ -745,15 +835,15 @@
             }
         });
 
-        // מקלדת
+        // ניווט מקלדת
         document.addEventListener('keydown', (e) => {
             if (!lightboxModal.classList.contains('active-modal')) return;
             if (e.key === 'Escape') closeLightbox();
-            else if (e.key === 'ArrowRight') prevImage();
             else if (e.key === 'ArrowLeft') nextImage();
+            else if (e.key === 'ArrowRight') prevImage();
         });
 
-        // Swipe מגע במובייל
+        // ניווט מחוות מגע (Swipe) במובייל
         lightboxModal.addEventListener('touchstart', (e) => {
             touchStartX = e.changedTouches[0].screenX;
         }, { passive: true });
@@ -765,7 +855,7 @@
 
         function handleSwipe() {
             const diff = touchEndX - touchStartX;
-            if (Math.abs(diff) > 50) {
+            if (Math.abs(diff) > 40) {
                 if (diff < 0) nextImage();
                 else prevImage();
             }
